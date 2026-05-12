@@ -53,6 +53,7 @@ public static class Diagnostics
     public const string IdProxyForTargetMethodNotFound = "RA0047";
     public const string IdPublicMethodSummaryMissing = "RA0048";
     public const string IdPublicComponentSummaryMissing = "RA0049";
+    public const string IdPublicDataFieldSummaryMissing = "RA0049";
 
     public static SuppressionDescriptor MeansImplicitAssignment =>
         new SuppressionDescriptor("RADC1000", "CS0649", "Marked as implicitly assigned.");

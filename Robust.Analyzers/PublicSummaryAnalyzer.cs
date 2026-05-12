@@ -17,6 +17,8 @@ public sealed class PublicSummaryAnalyzer : DiagnosticAnalyzer
     private const string ObsoleteAttribute = "Robust.Shared.Analyzers.ObsoleteInheritanceAttribute";
     private const string CommandAttribute = "Robust.Shared.Toolshed.CommandImplementationAttribute";
     private const string TestAttribute = "NUnit.Framework.TestAttribute";
+    private const string DataFieldAttribute = "Robust.Shared.Serialization.Manager.Attributes.DataFieldAttribute";
+    private const string ViewVariablesAttribute = "Robust.Shared.ViewVariables.ViewVariablesAttribute";
     private const string ComponentInterface = "Robust.Shared.GameObjects.IComponent";
 
     public static readonly DiagnosticDescriptor RuleMethod = new(
@@ -35,13 +37,22 @@ public sealed class PublicSummaryAnalyzer : DiagnosticAnalyzer
         DiagnosticSeverity.Warning,
         true);
 
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [RuleMethod, RuleComponent];
+    public static readonly DiagnosticDescriptor RuleDataField = new(
+        Diagnostics.IdPublicDataFieldSummaryMissing,
+        "Public DataField is missing XML summary",
+        "Public DataField '{0}' is missing XML summary documentation",
+        "Usage",
+        DiagnosticSeverity.Warning,
+        true);
+
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [RuleMethod, RuleComponent, RuleDataField];
 
     public override void Initialize(AnalysisContext context)
     {
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         context.EnableConcurrentExecution();
         context.RegisterSymbolAction(CheckComponent, SymbolKind.NamedType);
+        context.RegisterSymbolAction(CheckDataField, SymbolKind.Field, SymbolKind.Property);
         context.RegisterSyntaxNodeAction(CheckMethods, SyntaxKind.MethodDeclaration);
     }
 
@@ -62,6 +73,22 @@ public sealed class PublicSummaryAnalyzer : DiagnosticAnalyzer
             return;
 
         context.ReportDiagnostic(Diagnostic.Create(RuleComponent, context.Symbol.Locations[0], typeSymbol.Name));
+    }
+
+    private void CheckDataField(SymbolAnalysisContext context)
+    {
+        if (context.Symbol is not IFieldSymbol _ && context.Symbol is not IPropertySymbol _)
+            return;
+
+        if (!AttributeHelper.HasAttribute(context.Symbol, DataFieldAttribute, out _) && !AttributeHelper.HasAttribute(context.Symbol, ViewVariablesAttribute, out _))
+            return;
+
+        var xmlTrivia = context.Symbol.GetDocumentationCommentXml();
+
+        if (xmlTrivia == null || xmlTrivia.Contains("summary") || xmlTrivia.Contains("inheritdoc"))
+            return;
+
+        context.ReportDiagnostic(Diagnostic.Create(RuleDataField, context.Symbol.Locations[0], context.Symbol.Name));
     }
 
     private void CheckMethods(SyntaxNodeAnalysisContext syntaxNodeAnalysisContext)
