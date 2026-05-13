@@ -61,7 +61,7 @@ public sealed class PublicSummaryAnalyzer : DiagnosticAnalyzer
         if (context.Symbol is not INamedTypeSymbol typeSymbol)
             return;
 
-        if (typeSymbol.IsValueType)
+        if (typeSymbol.IsValueType || typeSymbol.DeclaredAccessibility != Accessibility.Public)
             return;
 
         if (!TypeSymbolHelper.ImplementsInterface(typeSymbol, ComponentInterface))
@@ -78,6 +78,9 @@ public sealed class PublicSummaryAnalyzer : DiagnosticAnalyzer
     private void CheckDataField(SymbolAnalysisContext context)
     {
         if (context.Symbol is not IFieldSymbol _ && context.Symbol is not IPropertySymbol _)
+            return;
+
+        if (context.Symbol.DeclaredAccessibility != Accessibility.Public)
             return;
 
         if (!AttributeHelper.HasAttribute(context.Symbol, DataFieldAttribute, out _) && !AttributeHelper.HasAttribute(context.Symbol, ViewVariablesAttribute, out _))
