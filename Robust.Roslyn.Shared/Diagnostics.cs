@@ -57,6 +57,9 @@ public static class Diagnostics
     public const string IdHasDependenciesReadOnly = "RA0051";
     public const string IdHasDependenciesPropertyField = "RA0052";
     public const string IdExclusiveVirtual = "RA0053";
+    public const string IdPublicMethodSummaryMissing = "RA0054";
+    public const string IdPublicComponentSummaryMissing = "RA0055";
+    public const string IdPublicDataFieldSummaryMissing = "RA0056";
 
     public static SuppressionDescriptor MeansImplicitAssignment =>
         new SuppressionDescriptor("RADC1000", "CS0649", "Marked as implicitly assigned.");
