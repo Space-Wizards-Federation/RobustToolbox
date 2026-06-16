@@ -12,6 +12,12 @@ namespace Robust.Server.ServerStatus
 
     internal sealed partial class StatusHost
     {
+        /// <summary>
+        /// Name identifying this engine's client distribution.
+        /// Engine forks that change client ABI or behaviour need to change this,
+        /// so smart launchers can download and verify the correct client zip.
+        /// </summary>
+        public const string ClientEngineName = "RobustToolbox";
 
         private void RegisterHandlers()
         {
@@ -134,7 +140,7 @@ namespace Robust.Server.ServerStatus
 
             return new JsonObject
             {
-                ["engine"] = "RobustToolbox",
+                ["engine"] = ClientEngineName,
                 ["engine_version"] = buildInfo.EngineVersion,
                 ["fork_id"] = buildInfo.ForkId,
                 ["version"] = buildInfo.Version,
@@ -161,7 +167,7 @@ namespace Robust.Server.ServerStatus
             }
             return new JsonObject
             {
-                ["engine"] = "RobustToolbox",
+                ["engine"] = ClientEngineName,
                 ["engine_version"] = _cfg.GetCVar(CVars.BuildEngineVersion),
                 ["fork_id"] = fork,
                 ["version"] = acm.ManifestHash,
