@@ -12,13 +12,6 @@ namespace Robust.Server.ServerStatus
 
     internal sealed partial class StatusHost
     {
-        /// <summary>
-        /// Name identifying this engine's client distribution.
-        /// Engine forks that change client ABI or behaviour need to change this,
-        /// so smart launchers can download and verify the correct client zip.
-        /// </summary>
-        public const string ClientEngineName = "RobustToolbox";
-
         private void RegisterHandlers()
         {
             AddHandler(HandleTeapot);
@@ -52,7 +45,7 @@ namespace Robust.Server.ServerStatus
                 // Content can override these if it wants (e.g. stealthmins).
                 ["name"] = _serverNameCache,
                 ["players"] = _playerManager.PlayerCount,
-                ["engine_type"] = ClientEngineName
+                ["engine_type"] = _cfg.GetCVar(CVars.BuildEngineType)
             };
 
             var tagsCache = _serverTagsCache;
@@ -141,7 +134,7 @@ namespace Robust.Server.ServerStatus
 
             return new JsonObject
             {
-                ["engine_type"] = ClientEngineName,
+                ["engine_type"] = buildInfo.Engine,
                 ["engine_version"] = buildInfo.EngineVersion,
                 ["fork_id"] = buildInfo.ForkId,
                 ["version"] = buildInfo.Version,
@@ -168,7 +161,7 @@ namespace Robust.Server.ServerStatus
             }
             return new JsonObject
             {
-                ["engine_type"] = ClientEngineName,
+                ["engine_type"] = _cfg.GetCVar(CVars.BuildEngineType),
                 ["engine_version"] = _cfg.GetCVar(CVars.BuildEngineVersion),
                 ["fork_id"] = fork,
                 ["version"] = acm.ManifestHash,
