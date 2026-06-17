@@ -1,14 +1,14 @@
 [submodule "NetSerializer"]
 	path = NetSerializer
 	url = https://github.com/Space-Wizards-Federation/netserializer
-    branch = robust
+  branch = robust
 [submodule "Lidgren.Network"]
 	path = Lidgren.Network/Lidgren.Network
 	url = https://github.com/Space-Wizards-Federation/SpaceWizards.Lidgren.Network
 [submodule "XamlX"]
 	path = XamlX
 	url = https://github.com/Space-Wizards-Federation/XamlX
-    branch = old-master
+  branch = old-master
 [submodule "Robust.LoaderApi"]
 	path = Robust.LoaderApi
 	url = https://github.com/Space-Wizards-Federation/Robust.LoaderApi.git
