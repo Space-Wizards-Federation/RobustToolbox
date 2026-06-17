@@ -51,7 +51,8 @@ namespace Robust.Server.ServerStatus
                 // Tags is optional technically but will be necessary practically for future organization.
                 // Content can override these if it wants (e.g. stealthmins).
                 ["name"] = _serverNameCache,
-                ["players"] = _playerManager.PlayerCount
+                ["players"] = _playerManager.PlayerCount,
+                ["engine_type"] = ClientEngineName
             };
 
             var tagsCache = _serverTagsCache;
@@ -140,7 +141,7 @@ namespace Robust.Server.ServerStatus
 
             return new JsonObject
             {
-                ["engine"] = ClientEngineName,
+                ["engine_type"] = ClientEngineName,
                 ["engine_version"] = buildInfo.EngineVersion,
                 ["fork_id"] = buildInfo.ForkId,
                 ["version"] = buildInfo.Version,
@@ -167,7 +168,7 @@ namespace Robust.Server.ServerStatus
             }
             return new JsonObject
             {
-                ["engine"] = ClientEngineName,
+                ["engine_type"] = ClientEngineName,
                 ["engine_version"] = _cfg.GetCVar(CVars.BuildEngineVersion),
                 ["fork_id"] = fork,
                 ["version"] = acm.ManifestHash,
