@@ -49,6 +49,14 @@ namespace Robust.Client.UserInterface
         /// </summary>
         public ValueList<int> LineBreaks;
 
+        /// <summary>
+        /// Used by the consistent line spacing path while still leaving enough room
+        /// for oversized text / controls.
+        /// </summary>
+        public ValueList<int> LineAscents;
+
+        public ValueList<int> LineDescents;
+
         public readonly Dictionary<int, Control>? Controls;
 
 
@@ -67,6 +75,8 @@ namespace Robust.Client.UserInterface
             Height = 0;
             Width = 0;
             LineBreaks = default;
+            LineAscents = default;
+            LineDescents = default;
             _defaultColor = defaultColor ?? new(200, 200, 200);
             _tagsAllowed = tagsAllowed;
             Controls = GetControls(parent, tagManager);
@@ -122,14 +132,30 @@ namespace Robust.Client.UserInterface
         /// <param name="maxSizeX">The maximum horizontal size of the container of this entry.</param>
         /// <param name="uiScale"></param>
         /// <param name="lineHeightScale"></param>
-        public RichTextEntry Update(MarkupTagManager tagManager, Font defaultFont, float maxSizeX, float uiScale, float lineHeightScale = 1)
+        /// <param name="consistentLineSpacing">Whether to keep the default font's line-spacing between entries or use the font's spacing</param>
+        public RichTextEntry Update(MarkupTagManager tagManager,
+            Font defaultFont,
+            float maxSizeX,
+            float uiScale,
+            float lineHeightScale = 1,
+            bool consistentLineSpacing = false)
         {
             // This method is gonna suck due to complexity.
             // Bear with me here.
             // I am so deeply sorry for the person adding stuff to this in the future.
 
-            Height = defaultFont.GetHeight(uiScale);
+            Height = consistentLineSpacing ? 0 : defaultFont.GetHeight(uiScale);
             LineBreaks.Clear();
+            LineAscents.Clear();
+            LineDescents.Clear();
+
+            var defaultLineHeight = GetLineHeight(defaultFont, uiScale, lineHeightScale);
+            var defaultLineAscent = defaultFont.GetAscent(uiScale);
+            var defaultLineDescent = defaultFont.GetDescent(uiScale);
+            // These track actual content bounds for the current line. They start at the default font
+            // so empty lines and normal text keep the usual spacing.
+            var currentLineAscent = defaultLineAscent;
+            var currentLineDescent = defaultLineDescent;
 
             int? breakLine;
             var wordWrap = new WordWrap(maxSizeX);
@@ -161,6 +187,9 @@ namespace Robust.Client.UserInterface
 
                     if (ProcessMetric(ref this, metrics, out breakLine))
                         return this;
+
+                    if (consistentLineSpacing)
+                        IncludeGlyph(metrics);
                 }
 
                 if (Controls == null || !Controls.TryGetValue(nodeIndex, out var control))
@@ -177,10 +206,19 @@ namespace Robust.Client.UserInterface
 
                 if (ProcessMetric(ref this, controlMetrics, out breakLine))
                     return this;
+
+                if (consistentLineSpacing)
+                    IncludeControl(desiredSize.Y);
             }
 
             Width = wordWrap.FinalizeText(out breakLine);
             CheckLineBreak(ref this, breakLine);
+
+            if (consistentLineSpacing)
+            {
+                AddLineMetrics(ref this);
+                Height = GetEntryHeight(ref this, defaultLineHeight);
+            }
 
             return this;
 
@@ -201,16 +239,62 @@ namespace Robust.Client.UserInterface
                 return abort;
             }
 
+            void IncludeGlyph(CharMetrics metrics)
+            {
+                // Use glyph bounds instead of the font's full line height. Font line height has extra leading,
+                // which makes large inline text add too much visual padding in chat and would make the spacing inconsistent.
+                currentLineAscent = Math.Max(currentLineAscent, metrics.BearingY);
+                currentLineDescent = Math.Max(currentLineDescent, metrics.Height - metrics.BearingY);
+            }
+
+            void IncludeControl(int controlHeight)
+            {
+                currentLineDescent = Math.Max(currentLineDescent, controlHeight - currentLineAscent);
+            }
+
             void CheckLineBreak(ref RichTextEntry src, int? line)
             {
                 if (line is { } l)
                 {
                     src.LineBreaks.Add(l);
-                    if (!context.Font.TryPeek(out var font))
-                        font = defaultFont;
 
-                    src.Height += GetLineHeight(font, uiScale, lineHeightScale);
+                    if (consistentLineSpacing)
+                    {
+                        AddLineMetrics(ref src);
+                        currentLineAscent = defaultLineAscent;
+                        currentLineDescent = defaultLineDescent;
+                    }
+                    else
+                    {
+                        if (!context.Font.TryPeek(out var font))
+                            font = defaultFont;
+
+                        src.Height += GetLineHeight(font, uiScale, lineHeightScale);
+                    }
                 }
+            }
+
+            void AddLineMetrics(ref RichTextEntry src)
+            {
+                src.LineAscents.Add(currentLineAscent);
+                src.LineDescents.Add(currentLineDescent);
+            }
+
+            int GetEntryHeight(ref RichTextEntry src, int defaultLineHeight)
+            {
+                if (src.LineAscents.Count == 0)
+                    return 0;
+
+                var baseline = src.LineAscents[0];
+                var bottom = baseline + src.LineDescents[0];
+
+                for (var i = 1; i < src.LineAscents.Count; i++)
+                {
+                    baseline += Math.Max(defaultLineHeight, src.LineDescents[i - 1] + src.LineAscents[i]);
+                    bottom = Math.Max(bottom, baseline + src.LineDescents[i]);
+                }
+
+                return bottom;
             }
         }
 
@@ -233,7 +317,8 @@ namespace Robust.Client.UserInterface
             float verticalOffset,
             MarkupDrawingContext context,
             float uiScale,
-            float lineHeightScale = 1)
+            float lineHeightScale = 1,
+            bool consistentLineSpacing = false)
         {
             context.Clear();
             context.Color.Push(_defaultColor);
@@ -241,7 +326,9 @@ namespace Robust.Client.UserInterface
 
             var globalBreakCounter = 0;
             var lineBreakIndex = 0;
-            var baseLine = drawBox.TopLeft + new Vector2(0, defaultFont.GetAscent(uiScale) + verticalOffset);
+            var lineIndex = 0;
+            var defaultLineHeight = GetLineHeight(defaultFont, uiScale, lineHeightScale);
+            var baseLine = drawBox.TopLeft + new Vector2(0, verticalOffset + GetLineAscent(lineIndex, defaultFont, uiScale));
             var controlYAdvance = 0f;
 
             var spaceRune = new Rune(' ');
@@ -264,8 +351,19 @@ namespace Robust.Client.UserInterface
                     if (lineBreakIndex < LineBreaks.Count &&
                         LineBreaks[lineBreakIndex] == globalBreakCounter)
                     {
-                        baseLine = new Vector2(drawBox.Left, baseLine.Y + GetLineHeight(font, uiScale, lineHeightScale) + controlYAdvance);
-                        controlYAdvance = 0;
+                        if (consistentLineSpacing)
+                        {
+                            baseLine = new Vector2(drawBox.Left,
+                                baseLine.Y + GetBaselineAdvance(lineIndex, lineIndex + 1, defaultLineHeight, defaultFont, uiScale));
+                            lineIndex += 1;
+                        }
+                        else
+                        {
+                            baseLine = new Vector2(drawBox.Left,
+                                baseLine.Y + GetLineHeight(font, uiScale, lineHeightScale) + controlYAdvance);
+                            controlYAdvance = 0;
+                        }
+
                         lineBreakIndex += 1;
 
                         // The baseline calc is kind of messed up, the newline is After the space but the space is being drawn after doing the newline
@@ -291,16 +389,45 @@ namespace Robust.Client.UserInterface
 
                 var invertedScale = 1f / uiScale;
                 control.Measure(new Vector2(Width, Height));
+                var controlAscent = consistentLineSpacing
+                    ? GetLineAscent(lineIndex, defaultFont, uiScale)
+                    : defaultFont.GetAscent(uiScale);
                 control.Arrange(UIBox2.FromDimensions(
                     baseLine.X * invertedScale,
-                    (baseLine.Y - defaultFont.GetAscent(uiScale)) * invertedScale,
+                    (baseLine.Y - controlAscent) * invertedScale,
                     control.DesiredSize.X,
                     control.DesiredSize.Y
                 ));
                 var advanceX = control.DesiredPixelSize.X;
-                controlYAdvance = Math.Max(0f, (control.DesiredPixelSize.Y - GetLineHeight(font, uiScale, lineHeightScale)) * invertedScale);
+                if (!consistentLineSpacing)
+                    controlYAdvance = Math.Max(0f,
+                        (control.DesiredPixelSize.Y - GetLineHeight(font, uiScale, lineHeightScale)) * invertedScale);
+
                 baseLine += new Vector2(advanceX, 0);
             }
+        }
+
+        private readonly int GetBaselineAdvance(int currentLine, int nextLine, int defaultLineHeight, Font defaultFont, float uiScale)
+        {
+            // Keep the default line spacing unless adjacent glyph bounds need more room to avoid overlap.
+            return Math.Max(defaultLineHeight,
+                GetLineDescent(currentLine, defaultFont, uiScale) + GetLineAscent(nextLine, defaultFont, uiScale));
+        }
+
+        private readonly int GetLineAscent(int lineIndex, Font defaultFont, float uiScale)
+        {
+            if (lineIndex < LineAscents.Count)
+                return LineAscents[lineIndex];
+
+            return defaultFont.GetAscent(uiScale);
+        }
+
+        private readonly int GetLineDescent(int lineIndex, Font defaultFont, float uiScale)
+        {
+            if (lineIndex < LineDescents.Count)
+                return LineDescents[lineIndex];
+
+            return defaultFont.GetDescent(uiScale);
         }
 
         private readonly string ProcessNode(MarkupTagManager tagManager, MarkupNode node, MarkupDrawingContext context)

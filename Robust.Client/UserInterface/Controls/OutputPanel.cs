@@ -45,6 +45,22 @@ namespace Robust.Client.UserInterface.Controls
 
         public bool ScrollFollowing { get; set; } = true;
 
+        /// <summary>
+        /// If true then the panel will try to keep the spacing between every RichTextEntry regardless of font-size consistent.
+        /// </summary>
+        public bool ConsistentLineSpacing
+        {
+            get;
+            set
+            {
+                if (field == value)
+                    return;
+
+                field = value;
+                _invalidateEntries();
+            }
+        }
+
         private bool _invalidOnVisible;
 
         public OutputPanel()
@@ -145,7 +161,8 @@ namespace Robust.Client.UserInterface.Controls
         {
             var entry = new RichTextEntry(message, this, _tagManager, tagsAllowed, defaultColor);
 
-            entry.Update(_tagManager, _getFont(), _getContentBox().Width, UIScale);
+            entry.Update(_tagManager, _getFont(), _getContentBox().Width, UIScale,
+                consistentLineSpacing: ConsistentLineSpacing);
 
             _entries.Add(entry);
             var font = _getFont();
@@ -172,7 +189,8 @@ namespace Robust.Client.UserInterface.Controls
             _scrollBar.MaxValue = Math.Max(_scrollBar.Page, _totalContentHeight);
 
             var entry = new RichTextEntry(message, this, _tagManager, tagsAllowed, defaultColor);
-            entry.Update(_tagManager, _getFont(), _getContentBox().Width, UIScale);
+            entry.Update(_tagManager, _getFont(), _getContentBox().Width, UIScale,
+                consistentLineSpacing: ConsistentLineSpacing);
             _entries[index] = entry;
 
             AddNewItemHeight(font, in entry);
@@ -242,7 +260,8 @@ namespace Robust.Client.UserInterface.Controls
                     continue;
                 }
 
-                entry.Draw(_tagManager, handle, font, contentBox, entryOffset, context, UIScale);
+                entry.Draw(_tagManager, handle, font, contentBox, entryOffset, context, UIScale,
+                    consistentLineSpacing: ConsistentLineSpacing);
 
                 entryOffset += entry.Height + lineSeparation;
             }
@@ -283,7 +302,7 @@ namespace Robust.Client.UserInterface.Controls
             var sizeX = _getContentBox().Width;
             foreach (ref var entry in _entries)
             {
-                entry.Update(_tagManager, font, sizeX, UIScale);
+                entry.Update(_tagManager, font, sizeX, UIScale, consistentLineSpacing: ConsistentLineSpacing);
                 _totalContentHeight += entry.Height + font.GetLineSeparation(UIScale);
             }
 
