@@ -284,7 +284,15 @@ namespace Robust.Shared.Prototypes
             return $"EntityPrototype({ID})";
         }
 
-        public partial record ComponentRegistryEntry(IComponent Component);
+        public sealed class ComponentRegistryEntry
+        {
+            public IComponent Component { get; }
+
+            public ComponentRegistryEntry(IComponent component)
+            {
+                Component = component;
+            }
+        }
 
         [DataDefinition]
         public sealed partial class EntityPlacementProperties
