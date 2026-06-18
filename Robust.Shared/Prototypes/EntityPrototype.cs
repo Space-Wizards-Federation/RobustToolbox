@@ -284,7 +284,6 @@ namespace Robust.Shared.Prototypes
             return $"EntityPrototype({ID})";
         }
 
-        [DataRecord]
         public partial record ComponentRegistryEntry(IComponent Component);
 
         [DataDefinition]
