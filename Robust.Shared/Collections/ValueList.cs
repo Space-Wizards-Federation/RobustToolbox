@@ -674,7 +674,12 @@ public struct ValueList<T> : IEnumerable<T>
             return false;
         }
 
-        value = _items![--Count];
+        var index = --Count;
+        value = _items![index];
+
+        if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+            _items[index] = default!;
+
         return true;
     }
 
