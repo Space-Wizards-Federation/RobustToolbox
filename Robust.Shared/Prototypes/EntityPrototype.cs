@@ -10,7 +10,6 @@ using Robust.Shared.Maths;
 using Robust.Shared.Serialization;
 using Robust.Shared.Serialization.Manager;
 using Robust.Shared.Serialization.Manager.Attributes;
-using Robust.Shared.Serialization.Markdown.Mapping;
 using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototype.Array;
 using Robust.Shared.Utility;
 using Robust.Shared.ViewVariables;
@@ -151,16 +150,16 @@ namespace Robust.Shared.Prototypes
         /// <summary>
         /// A dictionary mapping the component type list to the YAML mapping containing their settings.
         /// </summary>
-        [DataField("components")]
+        [DataField]
         [AlwaysPushInheritance]
         public ComponentRegistry Components = new();
 
         public EntityPrototype()
         {
             // Everybody gets a transform component!
-            Components.Add("Transform", new ComponentRegistryEntry(new TransformComponent(), new MappingDataNode()));
+            Components.Add("Transform", new ComponentRegistryEntry(new TransformComponent()));
             // And a metadata component too!
-            Components.Add("MetaData", new ComponentRegistryEntry(new MetaDataComponent(), new MappingDataNode()));
+            Components.Add("MetaData", new ComponentRegistryEntry(new MetaDataComponent()));
         }
 
         void ISerializationHooks.AfterDeserialization()
@@ -286,7 +285,7 @@ namespace Robust.Shared.Prototypes
         }
 
         [DataRecord]
-        public partial record ComponentRegistryEntry(IComponent Component, MappingDataNode Mapping);
+        public partial record ComponentRegistryEntry(IComponent Component);
 
         [DataDefinition]
         public sealed partial class EntityPlacementProperties
@@ -334,73 +333,6 @@ namespace Robust.Shared.Prototypes
                 }
             }
         }
-        /*private class PrototypeSerializationContext : YamlObjectSerializer.Context
-        {
-            readonly EntityPrototype? prototype;
-
-            public PrototypeSerializationContext(EntityPrototype? owner)
-            {
-                prototype = owner;
-            }
-
-            public override void SetCachedField<T>(string field, T value)
-            {
-                if (StackDepth != 0 || prototype?.CurrentDeserializingComponent == null)
-                {
-                    base.SetCachedField<T>(field, value);
-                    return;
-                }
-
-                if (!prototype.FieldCache.TryGetValue(prototype.CurrentDeserializingComponent, out var fieldList))
-                {
-                    fieldList = new Dictionary<(string, Type), object?>();
-                    prototype.FieldCache[prototype.CurrentDeserializingComponent] = fieldList;
-                }
-
-                fieldList[(field, typeof(T))] = value;
-            }
-
-            public override bool TryGetCachedField<T>(string field, [MaybeNullWhen(false)] out T value)
-            {
-                if (StackDepth != 0 || prototype?.CurrentDeserializingComponent == null)
-                {
-                    return base.TryGetCachedField<T>(field, out value);
-                }
-
-                if (prototype.FieldCache.TryGetValue(prototype.CurrentDeserializingComponent, out var dict))
-                {
-                    if (dict.TryGetValue((field, typeof(T)), out var theValue))
-                    {
-                        value = (T) theValue!;
-                        return true;
-                    }
-                }
-
-                value = default!;
-                return false;
-            }
-
-            public override void SetDataCache(string field, object value)
-            {
-                if (StackDepth != 0 || prototype == null)
-                {
-                    base.SetDataCache(field, value);
-                    return;
-                }
-
-                prototype.DataCache[field] = value;
-            }
-
-            public override bool TryGetDataCache(string field, out object? value)
-            {
-                if (StackDepth != 0 || prototype == null)
-                {
-                    return base.TryGetDataCache(field, out value);
-                }
-
-                return prototype.DataCache.TryGetValue(field, out value);
-            }
-        }*/
     }
 
     public sealed class ComponentRegistry : Dictionary<string, EntityPrototype.ComponentRegistryEntry>, IEntityLoadContext
