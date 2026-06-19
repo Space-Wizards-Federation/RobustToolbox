@@ -55,6 +55,7 @@ END TEMPLATE-->
 * Reduce TryRelativeTo string allocations.
 * Reduce OpenGL logging string allocations on debug for the client.
 * Optimise sprite sorting slightly.
+* Optimise ComponentRegistry deserialization slightly.
 
 
 ## 277.1.0
