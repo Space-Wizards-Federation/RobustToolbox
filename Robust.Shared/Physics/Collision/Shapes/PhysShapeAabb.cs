@@ -60,9 +60,6 @@ namespace Robust.Shared.Physics.Collision.Shapes
             _radius = PhysicsConstants.PolygonRadius;
         }
 
-        {
-        }
-
         [Pure]
         internal List<Vector2> GetVertices()
         {

@@ -470,12 +470,12 @@ public sealed partial class EntityLookupSystem : EntitySystem
             return;
         }
 
-        var count = fixture.Shape.ChildCount;
+        var count = _physics.GetChildCount(fixture.Shape);
         var proxies = new FixtureProxy[count];
 
         for (var i = 0; i < count; i++)
         {
-            var bounds = fixture.Shape.ComputeAABB(broadphaseTransform, i);
+            var bounds = _physics.ComputeAABB(fixture.Shape, broadphaseTransform, i);
             var proxy = new FixtureProxy(ent.Owner, ent.Comp1, ent.Comp2, bounds, fixtureId, fixture, i);
             proxy.ProxyId = tree.AddProxy(ref proxy);
             proxy.AABB = bounds;
