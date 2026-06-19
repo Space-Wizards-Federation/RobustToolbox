@@ -8,6 +8,7 @@ namespace Robust.Client.IntegrationTests.Audio;
 
 [TestFixture]
 [TestOf(typeof(AudioManager))]
+[Explicit("Server test-runners don't typically have the means of running OpenAL.")]
 public sealed class AudioManagerTest : RobustIntegrationTest
 {
     [Test]
