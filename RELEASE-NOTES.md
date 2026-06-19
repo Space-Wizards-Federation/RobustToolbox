@@ -39,7 +39,7 @@ END TEMPLATE-->
 
 ### New features
 
-*None yet*
+* Add a BoundUserInterfaceMessageReceivedEvent that will be raised whenever a BoundUserInterfaceMessage is received regardless of validation.
 
 ### Bugfixes
 
@@ -55,6 +55,7 @@ END TEMPLATE-->
 * Reduce TryRelativeTo string allocations.
 * Reduce OpenGL logging string allocations on debug for the client.
 * Optimise sprite sorting slightly.
+* Simplify and optimise Box2.Contains(Vector2)
 * Optimise ComponentRegistry deserialization slightly.
 
 
