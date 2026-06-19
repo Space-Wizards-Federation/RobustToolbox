@@ -40,6 +40,7 @@ END TEMPLATE-->
 ### New features
 
 * Add a BoundUserInterfaceMessageReceivedEvent that will be raised whenever a BoundUserInterfaceMessage is received regardless of validation.
+* Add SwitchAudioDevice API to AudioManager.
 
 ### Bugfixes
 
