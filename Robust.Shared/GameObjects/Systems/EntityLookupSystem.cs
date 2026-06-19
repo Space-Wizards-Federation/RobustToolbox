@@ -72,7 +72,6 @@ public record struct WorldAABBEvent
 
 public sealed partial class EntityLookupSystem : EntitySystem
 {
-    [Dependency] private IManifoldManager _manifoldManager = default!;
     [Dependency] private IMapManager _mapManager = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private INetManager _netMan = default!;
@@ -461,7 +460,7 @@ public sealed partial class EntityLookupSystem : EntitySystem
         {
             for (var i = 0; i < fixture.ProxyCount; i++)
             {
-                var bounds = fixture.Shape.ComputeAABB(broadphaseTransform, i);
+                var bounds = _physics.ComputeAABB(fixture.Shape, broadphaseTransform, i);
                 var proxy = fixture.Proxies[i];
                 tree.MoveProxy(proxy.ProxyId, bounds);
                 proxy.AABB = bounds;
@@ -848,10 +847,10 @@ public sealed partial class EntityLookupSystem : EntitySystem
             // TODO cache this to speed up entity lookups & tree updating
             foreach (var fixture in fixtures.Fixtures.Values)
             {
-                for (var i = 0; i < fixture.Shape.ChildCount; i++)
+                for (var i = 0; i < _physics.GetChildCount(fixture.Shape); i++)
                 {
                     // TODO don't transform each fixture, just transform the final AABB
-                    var boundy = fixture.Shape.ComputeAABB(transform, i);
+                    var boundy = _physics.ComputeAABB(fixture.Shape, transform, i);
                     bounds = bounds.Union(boundy);
                 }
             }

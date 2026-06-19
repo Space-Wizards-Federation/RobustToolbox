@@ -56,41 +56,34 @@ internal ref struct DistanceProxy
     /// <param name="shape">The shape.</param>
     internal void Set<T>(T shape, int index) where T : IPhysShape
     {
-        switch (shape.ShapeType)
+        switch (shape)
         {
-            case ShapeType.Circle:
-                var circle = Unsafe.As<PhysShapeCircle>(shape);
+            case PhysShapeCircle circle:
                 Buffer._00 = circle.Position;
                 Vertices = Buffer.AsSpan[..1];
                 Radius = circle.Radius;
                 break;
 
-            case ShapeType.Polygon:
-                if (shape is Polygon poly)
-                {
-                    Span<Vector2> verts = new Vector2[poly.VertexCount];
-                    poly._vertices.AsSpan[..poly.VertexCount].CopyTo(verts);
-                    Vertices = verts;
-                    Radius = poly.Radius;
-                }
-                else if (shape is SlimPolygon fast)
-                {
-                    Span<Vector2> verts = new Vector2[fast.VertexCount];
-                    fast._vertices.AsSpan[..fast.VertexCount].CopyTo(verts);
-                    Vertices = verts;
-                    Radius = fast.Radius;
-                }
-                else
-                {
-                    var polyShape = Unsafe.As<PolygonShape>(shape);
-                    Vertices = polyShape.Vertices.AsSpan()[..polyShape.VertexCount];
-                    Radius = polyShape.Radius;
-                }
-
+            case Polygon poly:
+                Span<Vector2> verts = new Vector2[poly.VertexCount];
+                poly._vertices.AsSpan[..poly.VertexCount].CopyTo(verts);
+                Vertices = verts;
+                Radius = poly.Radius;
                 break;
 
-            case ShapeType.Chain:
-                var chain = Unsafe.As<ChainShape>(shape);
+            case SlimPolygon fast:
+                Span<Vector2> fastVerts = new Vector2[fast.VertexCount];
+                fast._vertices.AsSpan[..fast.VertexCount].CopyTo(fastVerts);
+                Vertices = fastVerts;
+                Radius = fast.Radius;
+                break;
+
+            case PolygonShape polyShape:
+                Vertices = polyShape.Vertices.AsSpan()[..polyShape.VertexCount];
+                Radius = polyShape.Radius;
+                break;
+
+            case ChainShape chain:
                 Debug.Assert(0 <= index && index < chain.Vertices.Length);
 
                 Buffer._00 = chain.Vertices[index];
@@ -99,8 +92,7 @@ internal ref struct DistanceProxy
 
                 Radius = chain.Radius;
                 break;
-            case ShapeType.Edge:
-                var edge = Unsafe.As<EdgeShape>(shape);
+            case EdgeShape edge:
 
                 Buffer._00 = edge.Vertex1;
                 Buffer._01 = edge.Vertex2;
@@ -109,7 +101,7 @@ internal ref struct DistanceProxy
                 Radius = edge.Radius;
                 break;
             default:
-                throw new InvalidOperationException($"Invalid shapetype specified {shape.ShapeType}");
+                throw new InvalidOperationException($"Invalid shape specified {shape.GetType()}");
         }
     }
 

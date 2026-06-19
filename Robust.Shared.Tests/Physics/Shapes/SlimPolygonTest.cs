@@ -4,6 +4,7 @@ using Robust.Shared.Maths;
 using Robust.Shared.Maths.Tests;
 using Robust.Shared.Physics;
 using Robust.Shared.Physics.Shapes;
+using Robust.Shared.Physics.Systems;
 using Robust.UnitTesting;
 
 namespace Robust.Shared.Tests.Physics.Shapes;
@@ -12,6 +13,10 @@ namespace Robust.Shared.Tests.Physics.Shapes;
 [TestOf(typeof(SlimPolygon))]
 public sealed class SlimPolygonTest
 {
+    private sealed class TestPhysicsSystem : SharedPhysicsSystem;
+
+    private readonly TestPhysicsSystem _physics = new();
+
     /// <summary>
     /// Check that Slim and normal Polygon are equals
     /// </summary>
@@ -30,7 +35,7 @@ public sealed class SlimPolygonTest
     {
         var shape = new SlimPolygon(Box2.UnitCentered.Translated(Vector2.One));
 
-        Assert.That(shape.ComputeAABB(Transform.Empty, 0), Is.EqualTo(Box2.UnitCentered.Translated(Vector2.One)));
+        Assert.That(_physics.ComputeAABB(shape, Transform.Empty, 0), Is.EqualTo(Box2.UnitCentered.Translated(Vector2.One)));
     }
 
     [Test]
@@ -66,7 +71,7 @@ public sealed class SlimPolygonTest
     {
         var box = new Box2Rotated(dat.baseBox, dat.rotation, dat.origin);
         var shape = new SlimPolygon(box);
-        var aabb = shape.ComputeAABB(Transform.Empty, 0);
+        var aabb = _physics.ComputeAABB(shape, Transform.Empty, 0);
         Assert.That(aabb, Is.Approximately(dat.expected));
     }
 
@@ -110,14 +115,14 @@ public sealed class SlimPolygonTest
         // AABB of a 45 degree rotated unit box will be enlarged by a factor of sqrt(2)
         var transform = Transform.Empty;
         var expected = Box2.UnitCentered.Translated(new Vector2(1, 1 - MathF.Sqrt(2))).Scale(Vector2.One * MathF.Sqrt(2));
-        var aabb = shape.ComputeAABB(transform, 0);
+        var aabb = _physics.ComputeAABB(shape, transform, 0);
         Assert.That(aabb, Is.Approximately(expected, 0.0001f));
         Assert.That(aabb.Size, Is.Approximately(Vector2.One * MathF.Sqrt(2), 0.0001f));
 
         // But if we pass a 45 degree rotation into ComputeAABB, the box will not be enlarged.
         transform = new Transform(Vector2.Zero, Angle.FromDegrees(45));
         expected = Box2.UnitCentered.Translated(new Vector2(1, MathF.Sqrt(2) - 1));
-        aabb = shape.ComputeAABB(transform, 0);
+        aabb = _physics.ComputeAABB(shape, transform, 0);
         Assert.That(aabb, Is.Approximately(expected, 0.0001f));
         Assert.That(aabb.Size, Is.Approximately(Vector2.One, 0.0001f));
     }

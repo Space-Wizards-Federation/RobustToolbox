@@ -30,10 +30,7 @@ internal record struct SlimPolygon : IPhysShape
 
     public byte VertexCount => 4;
 
-    public int ChildCount => 1;
     public float Radius { get; set; } = PhysicsConstants.PolygonRadius;
-    public ShapeType ShapeType => ShapeType.Polygon;
-
     public SlimPolygon(Box2 box)
     {
         Radius = 0f;
@@ -150,14 +147,6 @@ internal record struct SlimPolygon : IPhysShape
         // lbrt = lbrt - [R, R, 0, 0] + [0, 0, R, R]
 
         return Unsafe.As<Vector128<float>, Box2>(ref lbrt);
-    }
-
-    public Box2 ComputeAABB(Transform transform, int childIndex)
-    {
-        DebugTools.Assert(childIndex == 0);
-        return Sse.IsSupported
-            ? ComputeAABBSse(transform)
-            : ComputeAABBSlow(transform);
     }
 
     public bool Equals(SlimPolygon other)

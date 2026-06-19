@@ -107,8 +107,9 @@ namespace Robust.Shared.Physics.Systems
 
             foreach (var fixture in fixtureComp.Fixtures.Values)
             {
-                foreach (var proxy in fixture.Proxies)
+                for (var i = 0; i < fixture.ProxyCount; i++)
                 {
+                    var proxy = fixture.Proxies[i];
                     broadphase.StaticTree.QueryAabb(ref state,
                         (ref (PhysicsComponent body, HashSet<EntityUid> entities) state,
                             in FixtureProxy other) =>
@@ -553,7 +554,7 @@ namespace Robust.Shared.Physics.Systems
                 if (bodyA.Hard && !fixtureA.Hard)
                     continue;
 
-                for (var i = 0; i < fixtureA.Shape.ChildCount; i++)
+                for (var i = 0; i < GetChildCount(fixtureA.Shape); i++)
                 {
                     input.ProxyA.Set(fixtureA.Shape, i);
 
@@ -562,7 +563,7 @@ namespace Robust.Shared.Physics.Systems
                         if (bodyB.Hard && !fixtureB.Hard)
                             continue;
 
-                        for (var j = 0; j < fixtureB.Shape.ChildCount; j++)
+                        for (var j = 0; j < GetChildCount(fixtureB.Shape); j++)
                         {
                             input.ProxyB.Set(fixtureB.Shape, j);
                             DistanceManager.ComputeDistance(out var output, out _, input);

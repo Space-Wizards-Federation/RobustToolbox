@@ -44,7 +44,7 @@ namespace Robust.Shared.Physics.Dynamics.Contacts
 {
     public sealed class Contact : IEquatable<Contact>
     {
-        private readonly IManifoldManager _manifoldManager;
+        private readonly SharedPhysicsSystem _physics;
 
 #if DEBUG
         internal SharedDebugPhysicsSystem _debugPhysics = default!;
@@ -89,9 +89,9 @@ namespace Robust.Shared.Physics.Dynamics.Contacts
 
         internal ContactFlags Flags = ContactFlags.None;
 
-        internal Contact(IManifoldManager manifoldManager)
+        internal Contact(SharedPhysicsSystem physics)
         {
-            _manifoldManager = manifoldManager;
+            _physics = physics;
 
             MapNode = new LinkedListNode<Contact>(this);
             BodyANode = new LinkedListNode<Contact>(this);
@@ -197,7 +197,7 @@ namespace Robust.Shared.Physics.Dynamics.Contacts
             {
                 var shapeA = FixtureA!.Shape;
                 var shapeB = FixtureB!.Shape;
-                touching = _manifoldManager.TestOverlap(shapeA,  ChildIndexA, shapeB, ChildIndexB, bodyATransform, bodyBTransform);
+                touching = _physics.TestOverlap(shapeA,  ChildIndexA, shapeB, ChildIndexB, bodyATransform, bodyBTransform);
 
                 // Sensors don't generate manifolds.
                 Manifold.PointCount = 0;
@@ -290,7 +290,7 @@ namespace Robust.Shared.Physics.Dynamics.Contacts
             {
                 var shapeA = FixtureA!.Shape;
                 var shapeB = FixtureB!.Shape;
-                IsTouching = _manifoldManager.TestOverlap(shapeA,  ChildIndexA, shapeB, ChildIndexB, bodyATransform, bodyBTransform);
+                IsTouching = _physics.TestOverlap(shapeA,  ChildIndexA, shapeB, ChildIndexB, bodyATransform, bodyBTransform);
             }
             else
             {
@@ -313,37 +313,37 @@ namespace Robust.Shared.Physics.Dynamics.Contacts
             {
                 // TODO: Need a unit test for these.
                 case ContactType.Polygon:
-                    _manifoldManager.CollidePolygons(ref manifold, (PolygonShape) FixtureA!.Shape, transformA, (PolygonShape) FixtureB!.Shape, transformB);
+                    _physics.CollidePolygons(ref manifold, (PolygonShape) FixtureA!.Shape, transformA, (PolygonShape) FixtureB!.Shape, transformB);
                     break;
                 case ContactType.PolygonAndCircle:
-                    _manifoldManager.CollidePolygonAndCircle(ref manifold, (PolygonShape) FixtureA!.Shape, transformA, (PhysShapeCircle) FixtureB!.Shape, transformB);
+                    _physics.CollidePolygonAndCircle(ref manifold, (PolygonShape) FixtureA!.Shape, transformA, (PhysShapeCircle) FixtureB!.Shape, transformB);
                     break;
                 case ContactType.EdgeAndCircle:
-                    _manifoldManager.CollideEdgeAndCircle(ref manifold, (EdgeShape) FixtureA!.Shape, transformA, (PhysShapeCircle) FixtureB!.Shape, transformB);
+                    _physics.CollideEdgeAndCircle(ref manifold, (EdgeShape) FixtureA!.Shape, transformA, (PhysShapeCircle) FixtureB!.Shape, transformB);
                     break;
                 case ContactType.EdgeAndPolygon:
-                    _manifoldManager.CollideEdgeAndPolygon(ref manifold, (EdgeShape) FixtureA!.Shape, transformA, (PolygonShape) FixtureB!.Shape, transformB);
+                    _physics.CollideEdgeAndPolygon(ref manifold, (EdgeShape) FixtureA!.Shape, transformA, (PolygonShape) FixtureB!.Shape, transformB);
                     break;
                 case ContactType.ChainAndCircle:
                 {
                     var chain = (ChainShape) FixtureA!.Shape;
-                    var edge = _manifoldManager.GetContactEdge();
+                    var edge = _physics.GetContactEdge();
                     chain.GetChildEdge(ref edge, ChildIndexA);
-                    _manifoldManager.CollideEdgeAndCircle(ref manifold, edge, in transformA, (PhysShapeCircle) FixtureB!.Shape, in transformB);
-                    _manifoldManager.ReturnEdge(edge);
+                    _physics.CollideEdgeAndCircle(ref manifold, edge, in transformA, (PhysShapeCircle) FixtureB!.Shape, in transformB);
+                    _physics.ReturnEdge(edge);
                     break;
                 }
                 case ContactType.ChainAndPolygon:
                 {
                     var loop2 = (ChainShape) FixtureA!.Shape;
-                    var edge = _manifoldManager.GetContactEdge();
+                    var edge = _physics.GetContactEdge();
                     loop2.GetChildEdge(ref edge, ChildIndexA);
-                    _manifoldManager.CollideEdgeAndPolygon(ref manifold, edge, in transformA, (PolygonShape) FixtureB!.Shape, in transformB);
-                    _manifoldManager.ReturnEdge(edge);
+                    _physics.CollideEdgeAndPolygon(ref manifold, edge, in transformA, (PolygonShape) FixtureB!.Shape, in transformB);
+                    _physics.ReturnEdge(edge);
                     break;
                 }
                 case ContactType.Circle:
-                    _manifoldManager.CollideCircles(ref manifold, (PhysShapeCircle) FixtureA!.Shape, in transformA, (PhysShapeCircle) FixtureB!.Shape, in transformB);
+                    _physics.CollideCircles(ref manifold, (PhysShapeCircle) FixtureA!.Shape, in transformA, (PhysShapeCircle) FixtureB!.Shape, in transformB);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException($"Collision between {FixtureA!.Shape.GetType()} and {FixtureB!.Shape.GetType()} not supported");

@@ -5,6 +5,7 @@ using JetBrains.Annotations;
 using Robust.Shared.Configuration;
 using Robust.Shared.IoC;
 using Robust.Shared.Maths;
+using Robust.Shared.Physics.Serialization;
 using Robust.Shared.Serialization;
 using Robust.Shared.Serialization.Manager.Attributes;
 using Robust.Shared.ViewVariables;
@@ -20,17 +21,19 @@ namespace Robust.Shared.Physics.Collision.Shapes
     [DataDefinition]
     public sealed partial class PhysShapeAabb : IPhysShape, IEquatable<PhysShapeAabb>
     {
-        public int ChildCount => 1;
-
         /// <summary>
         /// The radius of this AABB
         /// </summary>
         [ViewVariables(VVAccess.ReadWrite)]
+        [DataField(customTypeSerializer: typeof(NonNegativeFloatSerializer))]
         public float Radius
         {
             get => _radius;
             set
             {
+                if (value < 0f)
+                    throw new ArgumentOutOfRangeException(nameof(value), value, "AABB radius cannot be negative.");
+
                 if (MathHelper.CloseToPercent(_radius, value)) return;
                 _radius = value;
             }
@@ -40,9 +43,7 @@ namespace Robust.Shared.Physics.Collision.Shapes
 
         internal Vector2 Centroid => Vector2.Zero;
 
-        public ShapeType ShapeType => ShapeType.Unknown;
-
-        [DataField("bounds")]
+        [DataField]
         [ViewVariables(VVAccess.ReadWrite)]
         private Box2 _localBounds = Box2.UnitCentered;
 
@@ -51,7 +52,7 @@ namespace Robust.Shared.Physics.Collision.Shapes
 
         public PhysShapeAabb(float radius)
         {
-            _radius = radius;
+            Radius = radius;
         }
 
         public PhysShapeAabb()
@@ -59,9 +60,7 @@ namespace Robust.Shared.Physics.Collision.Shapes
             _radius = PhysicsConstants.PolygonRadius;
         }
 
-        public Box2 ComputeAABB(Transform transform, int childIndex)
         {
-            return new Box2Rotated(_localBounds.Translated(transform.Position), transform.Quaternion2D.Angle, transform.Position).CalcBoundingBox().Enlarged(_radius);
         }
 
         [Pure]

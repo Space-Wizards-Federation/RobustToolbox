@@ -28,9 +28,9 @@ internal partial class MapManager
             {
                 var fixture = grid.Comp.Fixtures[id];
 
-                for (var j = 0; j < fixture.Shape.ChildCount; j++)
+                for (var j = 0; j < _physics.GetChildCount(fixture.Shape); j++)
                 {
-                    if (_manifolds.TestOverlap(shape, 0, fixture.Shape, j, shapeTransform, gridTransform))
+                    if (_physics.TestOverlap(shape, 0, fixture.Shape, j, shapeTransform, gridTransform))
                     {
                         return true;
                     }
@@ -108,7 +108,7 @@ internal partial class MapManager
         bool approx = IMapManager.Approximate,
         bool includeMap = IMapManager.IncludeMap) where T : IPhysShape
     {
-        FindGridsIntersecting(mapEnt, shape, shape.ComputeAABB(transform, 0), transform, callback, approx: approx, includeMap: includeMap);
+        FindGridsIntersecting(mapEnt, shape, _physics.ComputeAABB(shape, transform, 0), transform, callback, approx: approx, includeMap: includeMap);
     }
 
     private void FindGridsIntersecting<T>(EntityUid mapEnt, T shape, Box2 worldAABB, Transform transform, GridCallback callback, bool approx = IMapManager.Approximate, bool includeMap = IMapManager.IncludeMap) where T : IPhysShape
@@ -130,7 +130,7 @@ internal partial class MapManager
         bool approx = IMapManager.Approximate,
         bool includeMap = IMapManager.IncludeMap) where T : IPhysShape
     {
-        FindGridsIntersecting(mapEnt, shape, shape.ComputeAABB(transform, 0), transform, ref state, callback, approx: approx, includeMap: includeMap);
+        FindGridsIntersecting(mapEnt, shape, _physics.ComputeAABB(shape, transform, 0), transform, ref state, callback, approx: approx, includeMap: includeMap);
     }
 
     private void FindGridsIntersecting<T, TState>(
@@ -200,14 +200,14 @@ internal partial class MapManager
     {
         foreach (var shape in shapes)
         {
-            FindGridsIntersecting(mapEnt, shape, shape.ComputeAABB(transform, 0), transform, ref entities, approx: approx, includeMap: includeMap);
+            FindGridsIntersecting(mapEnt, shape, _physics.ComputeAABB(shape, transform, 0), transform, ref entities, approx: approx, includeMap: includeMap);
         }
     }
 
     public void FindGridsIntersecting<T>(EntityUid mapEnt, T shape, Transform transform,
         ref List<Entity<MapGridComponent>> grids, bool approx = IMapManager.Approximate, bool includeMap = IMapManager.IncludeMap) where T : IPhysShape
     {
-        FindGridsIntersecting(mapEnt, shape, shape.ComputeAABB(transform, 0), transform, ref grids, approx: approx, includeMap: includeMap);
+        FindGridsIntersecting(mapEnt, shape, _physics.ComputeAABB(shape, transform, 0), transform, ref grids, approx: approx, includeMap: includeMap);
     }
 
     public void FindGridsIntersecting<T>(EntityUid mapEnt, T shape, Box2 worldAABB, Transform transform,

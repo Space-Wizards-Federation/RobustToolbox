@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Numerics;
 using Robust.Shared.Maths;
+using Robust.Shared.Physics.Serialization;
 using Robust.Shared.Serialization;
 using Robust.Shared.Serialization.Manager.Attributes;
 using Robust.Shared.Utility;
@@ -17,11 +18,20 @@ public sealed partial class ChainShape : IPhysShape
 
     public int Count => Vertices.Length - 1;
 
-    public int ChildCount => Count - 1;
+    private float _radius = PhysicsConstants.PolygonRadius;
 
-    [DataField]
-    public float Radius { get; set; } = PhysicsConstants.PolygonRadius;
-    public ShapeType ShapeType => ShapeType.Chain;
+    [DataField(customTypeSerializer: typeof(NonNegativeFloatSerializer))]
+    public float Radius
+    {
+        get => _radius;
+        set
+        {
+            if (value < 0f)
+                throw new ArgumentOutOfRangeException(nameof(value), value, "Chain radius cannot be negative.");
+
+            _radius = value;
+        }
+    }
 
     [DataField]
     public Vector2 PrevVertex;
@@ -43,6 +53,9 @@ public sealed partial class ChainShape : IPhysShape
     /// <param name="count">How many multiply radius by count to get total edges.</param>
     public void CreateLoop(Vector2 position, float radius, bool outer = true, float count = 16f)
     {
+        if (radius < 0f)
+            throw new ArgumentOutOfRangeException(nameof(radius), radius, "Loop radius cannot be negative.");
+
         int divisions = Math.Max(16,(int)(radius * count));
         float arcLength = MathF.PI * 2 / divisions;
         Span<Vector2> vertices = stackalloc Vector2[divisions];
@@ -154,24 +167,4 @@ public sealed partial class ChainShape : IPhysShape
                Vertices.SequenceEqual(otherChain.Vertices);
     }
 
-    public Box2 ComputeAABB(Transform transform, int childIndex)
-    {
-        DebugTools.Assert(childIndex < Count);
-
-        var i1 = childIndex;
-        var i2 = childIndex + 1;
-        if (i2 == Count)
-        {
-            i2 = 0;
-        }
-
-        var v1 = Transform.Mul(transform, Vertices[i1]);
-        var v2 = Transform.Mul(transform, Vertices[i2]);
-
-        var lower = Vector2.Min(v1, v2);
-        var upper = Vector2.Max(v1, v2);
-
-        var r = new Vector2(Radius, Radius);
-        return new Box2(lower - r, upper + r);
-    }
 }

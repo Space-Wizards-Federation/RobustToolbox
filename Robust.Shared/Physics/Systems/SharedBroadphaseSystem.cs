@@ -328,13 +328,13 @@ namespace Robust.Shared.Physics.Systems
                                             continue;
 
                                         bool addedPair = false;
-                                        for (var i = 0; i < fixtureA.Shape.ChildCount && !addedPair; i++)
+                                        for (var i = 0; i < tuple._physicsSystem.GetChildCount(fixtureA.Shape) && !addedPair; i++)
                                         {
-                                            var shapeAAabbInWorld = fixtureA.Shape.ComputeAABB(tuple.gridAToWorldRigid, i);
+                                            var shapeAAabbInWorld = tuple._physicsSystem.ComputeAABB(fixtureA.Shape, tuple.gridAToWorldRigid, i);
 
-                                            for (var j = 0; j < fixtureB.Shape.ChildCount && !addedPair; j++)
+                                            for (var j = 0; j < tuple._physicsSystem.GetChildCount(fixtureB.Shape) && !addedPair; j++)
                                             {
-                                                var shapeBAabbInWorld = fixtureB.Shape.ComputeAABB(gridBToWorldRigid, j);
+                                                var shapeBAabbInWorld = tuple._physicsSystem.ComputeAABB(fixtureB.Shape, gridBToWorldRigid, j);
 
                                                 if (!shapeAAabbInWorld.Intersects(shapeBAabbInWorld)) continue;
 
@@ -500,8 +500,9 @@ namespace Robust.Shared.Physics.Systems
 
         internal void TouchProxies(Fixture fixture)
         {
-            foreach (var proxy in fixture.Proxies)
+            for (var i = 0; i < fixture.ProxyCount; i++)
             {
+                var proxy = fixture.Proxies[i];
                 AddToMoveBuffer(proxy);
             }
         }

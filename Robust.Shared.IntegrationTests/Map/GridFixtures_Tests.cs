@@ -77,7 +77,7 @@ internal sealed class GridFixtures_Tests : RobustIntegrationTest
 
             Assert.That(manager.FixtureCount, Is.EqualTo(1));
             // Also should only be a single tile.
-            var bounds = manager.Fixtures.First().Value.Shape.ComputeAABB(new Transform(Vector2.Zero, (float) Angle.Zero.Theta), 0);
+            var bounds = physSystem.ComputeAABB(manager.Fixtures.First().Value.Shape, new Transform(Vector2.Zero, (float) Angle.Zero.Theta), 0);
             // Poly probably has Box2D's radius added to it so won't be a unit square
             Assert.That(MathHelper.CloseToPercent(Box2.Area(bounds), 1.0f, 0.1f));
 
@@ -85,7 +85,7 @@ internal sealed class GridFixtures_Tests : RobustIntegrationTest
             mapSystem.SetTile(grid, new Vector2i(0, 1), new Tile(1));
 
             Assert.That(manager.FixtureCount, Is.EqualTo(1));
-            bounds = manager.Fixtures.First().Value.Shape.ComputeAABB(new Transform(Vector2.Zero, (float) Angle.Zero.Theta), 0);
+            bounds = physSystem.ComputeAABB(manager.Fixtures.First().Value.Shape, new Transform(Vector2.Zero, (float) Angle.Zero.Theta), 0);
 
             // Even if we add a new tile old fixture should stay the same if they don't connect.
             Assert.That(MathHelper.CloseToPercent(Box2.Area(bounds), 2.0f, 0.1f));

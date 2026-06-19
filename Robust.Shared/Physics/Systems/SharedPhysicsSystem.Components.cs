@@ -776,9 +776,9 @@ public partial class SharedPhysicsSystem
 
         foreach (var fixture in manager.Fixtures.Values)
         {
-            for (var i = 0; i < fixture.Shape.ChildCount; i++)
+            for (var i = 0; i < GetChildCount(fixture.Shape); i++)
             {
-                var boundy = fixture.Shape.ComputeAABB(transform, i);
+                var boundy = ComputeAABB(fixture.Shape, transform, i);
                 bounds = bounds.Union(boundy);
             }
         }
@@ -805,9 +805,9 @@ public partial class SharedPhysicsSystem
         {
             if (!fixture.Hard) continue;
 
-            for (var i = 0; i < fixture.Shape.ChildCount; i++)
+            for (var i = 0; i < GetChildCount(fixture.Shape); i++)
             {
-                var boundy = fixture.Shape.ComputeAABB(transform, i);
+                var boundy = ComputeAABB(fixture.Shape, transform, i);
                 bounds = bounds.Union(boundy);
             }
         }

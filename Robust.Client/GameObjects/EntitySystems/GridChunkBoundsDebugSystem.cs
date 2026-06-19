@@ -9,6 +9,7 @@ using Robust.Shared.Map.Components;
 using Robust.Shared.Maths;
 using Robust.Shared.Physics;
 using Robust.Shared.Physics.Collision.Shapes;
+using Robust.Shared.Physics.Systems;
 using Robust.Shared.Utility;
 
 namespace Robust.Client.GameObjects
@@ -20,6 +21,7 @@ namespace Robust.Client.GameObjects
         [Dependency] private IOverlayManager _overlayManager = default!;
         [Dependency] private TransformSystem _transform = default!;
         [Dependency] private SharedMapSystem _map = default!;
+        [Dependency] private SharedPhysicsSystem _physicsSystem = default!;
 
         private GridChunkBoundsOverlay? _overlay;
 
@@ -40,7 +42,8 @@ namespace Robust.Client.GameObjects
                         _eyeManager,
                         _mapManager,
                         _transform,
-                        _map);
+                        _map,
+                        _physicsSystem);
 
                     _overlayManager.AddOverlay(_overlay);
                 }
@@ -62,18 +65,20 @@ namespace Robust.Client.GameObjects
         private readonly IMapManager _mapManager;
         private readonly SharedTransformSystem _transformSystem;
         private readonly SharedMapSystem _mapSystem;
+        private readonly SharedPhysicsSystem _physicsSystem;
 
         public override OverlaySpace Space => OverlaySpace.WorldSpace;
 
         private List<Entity<MapGridComponent>> _grids = new();
 
-        public GridChunkBoundsOverlay(IEntityManager entManager, IEyeManager eyeManager, IMapManager mapManager, SharedTransformSystem transformSystem, SharedMapSystem mapSystem)
+        public GridChunkBoundsOverlay(IEntityManager entManager, IEyeManager eyeManager, IMapManager mapManager, SharedTransformSystem transformSystem, SharedMapSystem mapSystem, SharedPhysicsSystem physicsSystem)
         {
             _entityManager = entManager;
             _eyeManager = eyeManager;
             _mapManager = mapManager;
             _transformSystem = transformSystem;
             _mapSystem = mapSystem;
+            _physicsSystem = physicsSystem;
         }
 
         protected internal override void Draw(in OverlayDrawArgs args)
@@ -110,9 +115,9 @@ namespace Robust.Client.GameObjects
 
                         worldHandle.DrawPrimitives(DrawPrimitiveTopology.TriangleFan, verts, Color.Green.WithAlpha(0.2f));
 
-                        for (var i = 0; i < fixture.Shape.ChildCount; i++)
+                        for (var i = 0; i < _physicsSystem.GetChildCount(fixture.Shape); i++)
                         {
-                            var aabb = fixture.Shape.ComputeAABB(transform, i);
+                            var aabb = _physicsSystem.ComputeAABB(fixture.Shape, transform, i);
 
                             args.WorldHandle.DrawRect(aabb, Color.Red.WithAlpha(0.5f), false);
                         }

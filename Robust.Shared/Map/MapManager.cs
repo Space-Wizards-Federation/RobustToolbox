@@ -3,7 +3,6 @@ using Robust.Shared.GameObjects;
 using Robust.Shared.IoC;
 using Robust.Shared.Log;
 using Robust.Shared.Map.Components;
-using Robust.Shared.Physics.Collision;
 using Robust.Shared.Physics.Systems;
 using Robust.Shared.Timing;
 
@@ -15,7 +14,6 @@ internal partial class MapManager : IMapManagerInternal, IEntityEventSubscriber
 {
     [Dependency] public IGameTiming GameTiming = default!;
     [Dependency] public IEntityManager EntityManager = default!;
-    [Dependency] private IManifoldManager _manifolds = default!;
     [Dependency] private ILogManager _logManager = default!;
     [Dependency] private IConsoleHost _conhost = default!;
 

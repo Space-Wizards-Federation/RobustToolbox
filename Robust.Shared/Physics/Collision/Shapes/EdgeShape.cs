@@ -22,7 +22,11 @@
 
 using System;
 using System.Numerics;
+using Robust.Shared.GameObjects;
 using Robust.Shared.Maths;
+using Robust.Shared.Physics.Components;
+using Robust.Shared.Physics.Dynamics;
+using Robust.Shared.Physics.Serialization;
 using Robust.Shared.Physics.Systems;
 using Robust.Shared.Serialization;
 using Robust.Shared.Serialization.Manager.Attributes;
@@ -56,17 +60,25 @@ namespace Robust.Shared.Physics.Collision.Shapes
         [DataField("vertex3"), Access(typeof(SharedPhysicsSystem), Friend = AccessPermissions.ReadWriteExecute, Other = AccessPermissions.Read)]
         internal Vector2 Vertex3;
 
-        [DataField("oneSided"), Access(typeof(SharedPhysicsSystem), Friend = AccessPermissions.ReadWriteExecute, Other = AccessPermissions.Read)]
+        [DataField, Access(typeof(SharedPhysicsSystem), Friend = AccessPermissions.ReadWriteExecute, Other = AccessPermissions.Read)]
         public bool OneSided;
 
-        public int ChildCount => 1;
+        private float _radius = PhysicsConstants.PolygonRadius;
 
-        public ShapeType ShapeType => ShapeType.Edge;
-
-        [DataField("radius"),
+        [DataField(customTypeSerializer: typeof(NonNegativeFloatSerializer)),
          Access(typeof(SharedPhysicsSystem), Friend = AccessPermissions.ReadWriteExecute,
              Other = AccessPermissions.Read)]
-        public float Radius { get; set; } = PhysicsConstants.PolygonRadius;
+        public float Radius
+        {
+            get => _radius;
+            set
+            {
+                if (value < 0f)
+                    throw new ArgumentOutOfRangeException(nameof(value), value, "Edge radius cannot be negative.");
+
+                _radius = value;
+            }
+        }
 
         public EdgeShape()
         {
@@ -112,20 +124,6 @@ namespace Robust.Shared.Physics.Collision.Shapes
                    Vertex1.Equals(edge.Vertex1) &&
                    Vertex2.Equals(edge.Vertex2) &&
                    Vertex3.Equals(edge.Vertex3);
-        }
-
-        public Box2 ComputeAABB(Transform transform, int childIndex)
-        {
-            DebugTools.Assert(childIndex == 0);
-
-            var v1 = Transform.Mul(transform, Vertex1);
-            var v2 = Transform.Mul(transform, Vertex2);
-
-            var lower = Vector2.Min(v1, v2);
-            var upper = Vector2.Max(v1, v2);
-
-            var radius = new Vector2(Radius, Radius);
-            return new Box2(lower - radius, upper + radius);
         }
 
         public float CalculateArea()

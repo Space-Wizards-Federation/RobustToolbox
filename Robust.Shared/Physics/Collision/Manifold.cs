@@ -121,11 +121,11 @@ public struct ContactID
 /// - Clip point versus plane with radius
 /// - Point versus point with radius (circles)
 /// The local point usage depends on the manifold type:
-/// - ShapeType.Circles: the local center of circleA
+/// - Circles: the local center of circleA
 /// - SeparationFunction.FaceA: the center of faceA
 /// - SeparationFunction.FaceB: the center of faceB
 /// Similarly the local normal usage:
-/// - ShapeType.Circles: not used
+/// - Circles: not used
 /// - SeparationFunction.FaceA: the normal on polygonA
 /// - SeparationFunction.FaceB: the normal on polygonB
 /// We store contacts in this way so that position correction can
