@@ -11,7 +11,7 @@ public sealed class AudioManagerRealTest : RobustIntegrationTest
 {
     // Skip it by default because the runner may not have any audio means.
     [Test]
-    public async Task SwitchesAudioDevice()
+    public async Task SwitchAudioDevice()
     {
         var client = StartClient(new ClientIntegrationOptions
         {
