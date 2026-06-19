@@ -35,11 +35,12 @@ END TEMPLATE-->
 
 ### Breaking changes
 
-*None yet*
+* ChildCount and ComputeAABB for IPhysShape were moved to SharedPhysicsSystem.
+* Radius is now validated for physics shapes and negative values are no longer allowed.
 
 ### New features
 
-*None yet*
+* SharedPhysicsSystem now exposes TestOverlap and the collision manifold methods.
 
 ### Bugfixes
 
