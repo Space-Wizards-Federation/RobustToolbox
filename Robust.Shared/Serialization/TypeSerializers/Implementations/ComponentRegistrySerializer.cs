@@ -32,7 +32,7 @@ namespace Robust.Shared.Serialization.TypeSerializers.Implementations
         {
             var factory = dependencies.Resolve<IComponentFactory>();
             var components = instanceProvider != null ? instanceProvider() : new ComponentRegistry();
-            Span<CompIdx> referenceTypes = stackalloc CompIdx[node.Count];
+            var referenceTypes = node.Count <= 1024 ? stackalloc CompIdx[node.Count] : new CompIdx[node.Count];
             var refIdx = 0;
 
             foreach (var sequenceEntry in node.Sequence)
