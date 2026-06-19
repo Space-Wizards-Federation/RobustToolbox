@@ -21,8 +21,6 @@ namespace Robust.Shared.Serialization.TypeSerializers.Implementations
     [TypeSerializer]
     public sealed class ComponentRegistrySerializer : ITypeSerializer<ComponentRegistry, SequenceDataNode>, ITypeInheritanceHandler<ComponentRegistry, SequenceDataNode>, ITypeCopier<ComponentRegistry>
     {
-        private static readonly MappingDataNode EmptyComponentMapping = new();
-
         public ComponentRegistry Read(ISerializationManager serializationManager,
             SequenceDataNode node,
             IDependencyCollection dependencies,
@@ -97,7 +95,7 @@ namespace Robust.Shared.Serialization.TypeSerializers.Implementations
             var factory = dependencies.Resolve<IComponentFactory>();
             var componentNames = new HashSet<string>();
             var list = new List<ValidationNode>();
-            Span<CompIdx> referenceTypes = stackalloc CompIdx[node.Count];
+            var referenceTypes = node.Count <= 1024 ? stackalloc CompIdx[node.Count] : new CompIdx[node.Count];
             var refIdx = 0;
 
             foreach (var sequenceEntry in node.Sequence)
