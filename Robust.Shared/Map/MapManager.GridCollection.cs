@@ -118,7 +118,8 @@ internal partial class MapManager
         //are applied. After they are applied the parent may be different, but the MapId will
         //be the same. This causes TransformComponent.ParentUid of a grid to be unsafe to
         //use in transform states anytime before the state parent is properly set.
-        EntityManager.GetComponent<TransformComponent>(gridEnt).AttachParent(map);
+        var transform = EntityManager.GetComponent<TransformComponent>(gridEnt);
+        EntityManager.System<SharedTransformSystem>().SetParent(gridEnt, transform, map);
 
         var meta = EntityManager.GetComponent<MetaDataComponent>(gridEnt);
         EntityManager.System<MetaDataSystem>().SetEntityName(gridEnt, $"grid", meta);
