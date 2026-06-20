@@ -1,6 +1,5 @@
 using System;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 using Robust.Shared.Utility;
 
@@ -18,6 +17,9 @@ namespace Robust.Shared.Maths
         ///     Angle in radians.
         /// </summary>
         public readonly double Theta;
+
+        private const double PiOver2 = Math.PI / 2.0;
+        private const double TwoPi = 2.0 * Math.PI;
 
         /// <summary>
         ///     Angle in degrees.
@@ -44,7 +46,7 @@ namespace Robust.Shared.Maths
 
         public static Angle FromWorldVec(Vector2 dir)
         {
-            return new Angle(dir) + Math.PI / 2;
+            return new Angle(Math.Atan2(dir.Y, dir.X) + PiOver2);
         }
 
         /// <summary>
@@ -56,52 +58,51 @@ namespace Robust.Shared.Maths
         ///     where an angle of zero is usually considered "south" (0, -1).
         /// </remarks>
         /// <returns>Unit Direction Vector</returns>
-        public readonly Vector2 ToVec()
+        public Vector2 ToVec()
         {
             var x = Math.Cos(Theta);
             var y = Math.Sin(Theta);
             return new Vector2((float) x, (float) y);
         }
 
-        public readonly Vector2 ToWorldVec()
+        public Vector2 ToWorldVec()
         {
-            return (this - MathHelper.PiOver2).ToVec();
+            var theta = Theta - PiOver2;
+            var x = Math.Cos(theta);
+            var y = Math.Sin(theta);
+            return new Vector2((float) x, (float) y);
         }
 
         private const double Segment = 2 * Math.PI / 8.0; // Cut the circle into 8 pieces
         private const double Offset = Segment / 2.0; // offset the pieces by 1/2 their size
+        private const double InvSegment = 1.0 / Segment;
 
-        public readonly Direction GetDir()
+        public Direction GetDir()
         {
-            var ang = Theta % (2 * Math.PI);
-
-            if (ang < 0) // convert -PI > PI to 0 > 2PI
-                ang += 2 * Math.PI;
-
-            return (Direction) (Math.Floor((ang + Offset) / Segment) % 8);
+            return GetDir(Theta);
         }
 
         public Direction RotateDir(Direction dir)
         {
-            var ang = (Theta + Segment * (int)dir) % (2 * Math.PI);
+            var ang = (Theta + Segment * (int)dir) % TwoPi;
             if (ang < 0)
-                ang += 2 * Math.PI;
+                ang += TwoPi;
 
-            return (Direction)(Math.Floor((ang + Offset) / Segment) % 8);
+            return (Direction) ((int) ((ang + Offset) * InvSegment) & 7);
         }
 
         private const double CardinalSegment = 2 * Math.PI / 4.0; // Cut the circle into 4 pieces
         private const double CardinalOffset = CardinalSegment / 2.0; // offset the pieces by 1/2 their size
+        private const double InvCardinalSegment = 1.0 / CardinalSegment;
 
         [Pure]
-        public readonly Direction GetCardinalDir()
+        public Direction GetCardinalDir()
         {
-            var ang = Theta % (2 * Math.PI);
+            var ang = Theta % TwoPi;
+            if (ang < 0) // convert -PI > PI to 0 > 2PI
+                ang += TwoPi;
 
-            if (ang < 0.0f) // convert -PI > PI to 0 > 2PI
-                ang += 2 * Math.PI;
-
-            return (Direction) (Math.Floor((ang + CardinalOffset) / CardinalSegment) * 2 % 8);
+            return (Direction) (((int) ((ang + CardinalOffset) * InvCardinalSegment) * 2) & 7);
         }
 
         /// <summary>
@@ -120,7 +121,7 @@ namespace Robust.Shared.Maths
         /// <param name="vec">Vector to rotate.</param>
         /// <returns>New rotated vector.</returns>
         [Pure]
-        public readonly Vector2 RotateVec(in Vector2 vec)
+        public Vector2 RotateVec(in Vector2 vec)
         {
             // No calculation necessery when theta is zero
             if (Theta == 0) return vec;
@@ -155,8 +156,8 @@ namespace Robust.Shared.Maths
             // The second two expressions cover an edge case where one number is barely non-negative while the other number is negative.
             // In this case, the negative number will get FlipPositived to ~2pi and the comparison will give a false negative.
             return MathHelper.CloseToPercent(aPositive, bPositive)
-                || MathHelper.CloseToPercent(aPositive + MathHelper.TwoPi, bPositive)
-                || MathHelper.CloseToPercent(aPositive, bPositive + MathHelper.TwoPi);
+                || MathHelper.CloseToPercent(aPositive + TwoPi, bPositive)
+                || MathHelper.CloseToPercent(aPositive, bPositive + TwoPi);
         }
 
         private static bool EqualsApprox(Angle a, Angle b, double tolerance)
@@ -171,15 +172,15 @@ namespace Robust.Shared.Maths
             // The second two expressions cover an edge case where one number is barely non-negative while the other number is negative.
             // In this case, the negative number will get FlipPositived to ~2pi and the comparison will give a false negative.
             return MathHelper.CloseToPercent(aPositive, bPositive, tolerance)
-                || MathHelper.CloseToPercent(aPositive + MathHelper.TwoPi, bPositive, tolerance)
-                || MathHelper.CloseToPercent(aPositive, bPositive + MathHelper.TwoPi, tolerance);
+                || MathHelper.CloseToPercent(aPositive + TwoPi, bPositive, tolerance)
+                || MathHelper.CloseToPercent(aPositive, bPositive + TwoPi, tolerance);
         }
 
         /// <summary>
         ///     Removes revolutions from a positive or negative angle to make it as small as possible.
         /// </summary>
         [Pure]
-        public readonly Angle Reduced()
+        public Angle Reduced()
         {
             return new(Reduce(Theta));
         }
@@ -190,29 +191,26 @@ namespace Robust.Shared.Maths
         private static double Reduce(double theta)
         {
             // int truncates value (round to 0)
-            var aTurns = (int) (theta / (2 * Math.PI));
-            return theta - aTurns * (2 * Math.PI);
+            var aTurns = (int) (theta / TwoPi);
+            return theta - aTurns * TwoPi;
         }
 
         /// <inheritdoc />
-        public readonly bool Equals(Angle other)
+        public bool Equals(Angle other)
         {
             return Theta.Equals(other.Theta);
         }
 
         /// <inheritdoc />
-        public readonly override bool Equals(object? obj)
+        public override bool Equals(object? obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
             return obj is Angle angle && Equals(angle);
         }
 
         /// <inheritdoc />
-        public readonly override int GetHashCode()
+        public override int GetHashCode()
         {
-
             return Theta.GetHashCode();
-
         }
 
         public static bool operator ==(Angle a, Angle b)
@@ -226,13 +224,13 @@ namespace Robust.Shared.Maths
         }
 
         [Pure]
-        public readonly Angle Opposite()
+        public Angle Opposite()
         {
-            return new Angle(FlipPositive(Theta-Math.PI));
+            return new Angle(FlipPositive(Theta - Math.PI));
         }
 
         [Pure]
-        public readonly Angle FlipPositive()
+        public Angle FlipPositive()
         {
             return new(FlipPositive(Theta));
         }
@@ -245,7 +243,16 @@ namespace Robust.Shared.Maths
             if (theta >= 0)
                 return theta;
 
-            return theta + 2 * Math.PI;
+            return theta + TwoPi;
+        }
+
+        private static Direction GetDir(double theta)
+        {
+            var ang = theta % TwoPi;
+            if (ang < 0) // convert -PI > PI to 0 > 2PI
+                ang += TwoPi;
+
+            return (Direction) ((int) ((ang + Offset) * InvSegment) & 7);
         }
 
         /// <summary>
@@ -262,8 +269,8 @@ namespace Robust.Shared.Maths
         /// </summary>
         public static Angle ShortestDistance(in Angle a, in Angle b)
         {
-            var delta = (b - a) % Math.Tau;
-            return 2 * delta % Math.Tau - delta;
+            var delta = (b - a) % TwoPi;
+            return 2 * delta % TwoPi - delta;
         }
 
         /// <summary>
