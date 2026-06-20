@@ -1,7 +1,6 @@
 using System;
 using System.Diagnostics.Contracts;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Robust.Shared.Utility;
 
@@ -23,9 +22,7 @@ namespace Robust.Shared.Maths
 
         public int Left
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             readonly get => _left;
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
                 if (value > _right)
@@ -37,9 +34,7 @@ namespace Robust.Shared.Maths
 
         public int Bottom
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             readonly get => _bottom;
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
                 if (value > _top)
@@ -51,9 +46,7 @@ namespace Robust.Shared.Maths
 
         public int Right
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             readonly get => _right;
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
                 if (value < _left)
@@ -65,9 +58,7 @@ namespace Robust.Shared.Maths
 
         public int Top
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             readonly get => _top;
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
                 if (value < _bottom)
@@ -79,9 +70,7 @@ namespace Robust.Shared.Maths
 
         public Vector2i BottomLeft
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             readonly get => _bottomLeft;
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
                 if (value.X > _right)
@@ -96,9 +85,7 @@ namespace Robust.Shared.Maths
 
         public Vector2i TopRight
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             readonly get => _topRight;
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
                 if (value.X < _left)
@@ -113,31 +100,26 @@ namespace Robust.Shared.Maths
 
         public readonly Vector2i BottomRight
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => new(Right, Bottom);
         }
 
         public readonly Vector2i TopLeft
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => new(Left, Top);
         }
 
         public readonly int Width
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => _right - _left;
         }
 
         public readonly int Height
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => _top - _bottom;
         }
 
         public readonly Vector2i Size
         {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => new(Width, Height);
         }
 
@@ -188,35 +170,30 @@ namespace Robust.Shared.Maths
             return box;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [Pure]
         public static Box2i FromDimensions(int left, int bottom, int width, int height)
         {
             return new(left, bottom, left + width, bottom + height);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [Pure]
         public static Box2i FromDimensions(Vector2i position, Vector2i size)
         {
             return FromDimensions(position.X, position.Y, size.X, size.Y);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [Pure]
         public static Box2i FromTwoPoints(Vector2i a, Vector2i b)
         {
             return new(Vector2i.ComponentMin(a, b), Vector2i.ComponentMax(a, b));
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [Pure]
         public readonly bool Contains(int x, int y)
         {
             return Contains(new Vector2i(x, y));
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [Pure]
         public readonly bool Contains(in Box2i inner)
             => Left <= inner.Left
@@ -224,7 +201,6 @@ namespace Robust.Shared.Maths
                && Right >= inner.Right
                && Top >= inner.Top;
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [Pure]
         public readonly bool Contains(Vector2i point, bool closedRegion = true)
         {
@@ -240,7 +216,6 @@ namespace Robust.Shared.Maths
         /// <summary>
         /// Unlike Contains this assumes the Vector2i occupies an entire tile so we need the point to the top-right of it for consideration.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [Pure]
         public readonly bool ContainsTile(Vector2i tile, bool closedRegion = true)
         {
@@ -258,7 +233,6 @@ namespace Robust.Shared.Maths
                    && tile.Y + 1 < Top;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [Pure]
         public readonly bool IsEmpty()
         {
@@ -266,7 +240,6 @@ namespace Robust.Shared.Maths
         }
 
         /// <summary>Returns a UIBox2 translated by the given amount.</summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [Pure]
         public readonly Box2i Translated(Vector2i point)
         {
@@ -276,7 +249,6 @@ namespace Robust.Shared.Maths
         /// <summary>
         ///     Returns the smallest rectangle that contains both of the rectangles.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [Pure]
         public readonly Box2i Union(in Box2i other)
         {
@@ -295,7 +267,6 @@ namespace Robust.Shared.Maths
         /// <remarks>
         /// Union treating other as a single point and not an entire tile.
         /// </remarks>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [Pure]
         public readonly Box2i Union(in Vector2i other)
         {
@@ -314,7 +285,6 @@ namespace Robust.Shared.Maths
         /// <remarks>
         /// Union treating other as an entire tile and not a single point.
         /// </remarks>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [Pure]
         public readonly Box2i UnionTile(in Vector2i other)
         {
@@ -328,7 +298,6 @@ namespace Robust.Shared.Maths
         }
 
         // override object.Equals
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly override bool Equals(object? obj)
         {
             if (obj is Box2i box)
@@ -339,14 +308,12 @@ namespace Robust.Shared.Maths
             return false;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly bool Equals(Box2i other)
         {
             return other.Left == Left && other.Right == Right && other.Bottom == Bottom && other.Top == Top;
         }
 
         // override object.GetHashCode
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public readonly override int GetHashCode()
         {
             var code = Left.GetHashCode();
@@ -374,13 +341,11 @@ namespace Robust.Shared.Maths
         /// <summary>
         ///     Compares two objects for equality by value.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator ==(Box2i a, Box2i b)
         {
             return a.Equals(b);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool operator !=(Box2i a, Box2i b)
         {
             return !a.Equals(b);
@@ -406,7 +371,6 @@ namespace Robust.Shared.Maths
         /// <summary>
         /// Multiplies each side of the box by the scalar.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [Pure]
         public readonly Box2i Scale(int scalar)
         {
@@ -417,7 +381,6 @@ namespace Robust.Shared.Maths
                 Top * scalar);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [Pure]
         public readonly bool Intersects(in Box2i other)
         {
@@ -427,7 +390,6 @@ namespace Robust.Shared.Maths
                    && other._left <= _right;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [Pure]
         public readonly Box2i Enlarged(int size)
         {
@@ -437,7 +399,6 @@ namespace Robust.Shared.Maths
         /// <summary>
         ///     Returns the intersection box created when two boxes overlap.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [Pure]
         public readonly Box2i Intersect(in Box2i other)
         {
@@ -450,14 +411,12 @@ namespace Robust.Shared.Maths
             return new Box2i();
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [Pure]
         public readonly bool IsValid()
         {
             return Right >= Left && Top >= Bottom;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [Pure]
         public readonly bool Encloses(in Box2i inner)
         {
@@ -467,7 +426,6 @@ namespace Robust.Shared.Maths
         /// <summary>
         ///     Returns this box enlarged to also contain the specified position.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [Pure]
         public readonly Box2i ExtendToContain(Vector2i vec)
         {
@@ -477,7 +435,6 @@ namespace Robust.Shared.Maths
         /// <summary>
         /// Given a point, returns the closest point to it inside the box.
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [Pure]
         public readonly Vector2i ClosestPoint(in Vector2i position)
         {
@@ -486,11 +443,9 @@ namespace Robust.Shared.Maths
                 MathHelper.Clamp(position.Y, Bottom, Top));
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int Perimeter(in Box2i box)
             => (box.Width + box.Height) * 2;
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int UnionPerimeter(in Box2i a, in Box2i b)
         {
             var left = Math.Min(a._left, b._left);
@@ -501,7 +456,6 @@ namespace Robust.Shared.Maths
             return 2 * ((right - left) + (top - bottom));
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [Pure]
         public static Box2i Union(Box2i a, Box2i b)
         {
@@ -510,7 +464,6 @@ namespace Robust.Shared.Maths
                 Vector2i.ComponentMax(a.TopRight, b.TopRight));
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [Pure]
         public static Box2i Union(in Vector2i a, in Vector2i b)
         {
