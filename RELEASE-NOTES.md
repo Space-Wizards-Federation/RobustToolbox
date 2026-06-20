@@ -58,6 +58,7 @@ END TEMPLATE-->
 * Simplify and optimise Box2.Contains(Vector2)
 * Optimise ComponentRegistry deserialization slightly.
 * Optimise Box2Rotated.TransformBox slightly.
+* Update Angle to use double constantly internally and optimise some methods.
 
 
 ## 277.1.0
