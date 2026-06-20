@@ -45,7 +45,7 @@ public abstract partial class SharedTransformSystem
         var oldRot = xform._localRotation;
         var oldMap = xform.MapUid;
         xform._localPosition = tilePos + newGrid.TileSizeHalfVector;
-        xform._localRotation += rotation;
+        xform._localRotation = NormalizeRotation(xform._localRotation + rotation);
 
         var meta = MetaData(uid);
         SetGridId((uid, xform, meta), newGridUid);
@@ -428,14 +428,34 @@ public abstract partial class SharedTransformSystem
         if (!XformQuery.Resolve(uid, ref xform))
             return;
 
-#pragma warning disable CS0618
-        xform.LocalPosition = value;
-#pragma warning restore CS0618
+        if (xform.Anchored)
+            return;
+
+        if (xform._localPosition.EqualsApprox(value))
+            return;
+
+        var oldParent = xform._parent;
+        var oldPos = xform._localPosition;
+
+        xform._localPosition = value;
+        var meta = MetaData(uid);
+        Dirty(uid, xform, meta);
+        xform.MatricesDirty = true;
+
+        if (!xform.Initialized)
+            return;
+
+        RaiseMoveEvent((uid, xform, meta), oldParent, oldPos, xform._localRotation, xform.MapUid);
     }
 
     #endregion
 
     #region Local Rotation
+
+    internal static Angle NormalizeRotation(Angle rotation)
+    {
+        return rotation.Reduced();
+    }
 
     public void SetLocalRotationNoLerp(EntityUid uid, Angle value, TransformComponent? xform = null)
     {
@@ -453,6 +473,27 @@ public abstract partial class SharedTransformSystem
     public void SetLocalRotation(TransformComponent xform, Angle value)
     {
         SetLocalRotation(xform.Owner, value, xform);
+    }
+
+    #endregion
+
+    #region No Local Rotation
+
+    public void SetNoLocalRotation(EntityUid uid, bool value, TransformComponent? xform = null)
+    {
+        if (!XformQuery.Resolve(uid, ref xform))
+            return;
+
+        SetNoLocalRotation((uid, xform), value);
+    }
+
+    public void SetNoLocalRotation(Entity<TransformComponent> entity, bool value)
+    {
+        if (value)
+            SetLocalRotation(entity.Owner, Angle.Zero, entity.Comp);
+
+        entity.Comp._noLocalRotation = value;
+        Dirty(entity);
     }
 
     #endregion
@@ -519,7 +560,7 @@ public abstract partial class SharedTransformSystem
         xform._localPosition = value.Position;
 
         if (rotation != null && !xform.NoLocalRotation)
-            xform._localRotation = rotation.Value;
+            xform._localRotation = NormalizeRotation(rotation.Value);
 
         DebugTools.Assert(!xform.NoLocalRotation || xform.LocalRotation == 0);
 
@@ -621,7 +662,7 @@ public abstract partial class SharedTransformSystem
             {
                 // preserve world rotation
                 if (rotation == null && oldParent != null && newParent != null && !xform.NoLocalRotation)
-                    xform._localRotation += GetWorldRotation(oldParent) - GetWorldRotation(newParent);
+                    xform._localRotation = NormalizeRotation(xform._localRotation + GetWorldRotation(oldParent) - GetWorldRotation(newParent));
 
                 DebugTools.Assert(!xform.NoLocalRotation || xform.LocalRotation == 0);
             }
@@ -1277,7 +1318,7 @@ public abstract partial class SharedTransformSystem
             xform._localPosition = pos;
 
         if (!xform.NoLocalRotation)
-            xform._localRotation = rot;
+            xform._localRotation = NormalizeRotation(rot);
 
         DebugTools.Assert(!xform.NoLocalRotation || xform.LocalRotation == 0);
 
