@@ -35,15 +35,18 @@ END TEMPLATE-->
 
 ### Breaking changes
 
-- SpawnNextToOrDrop methods have been changed to take `EntProtoId?, Entity<TransformComponent?>, Vector2 = default` instead of `string?, EntityUid, TransformComponent? null`. Because of this, some `Entity<T>`s will need to first be explicity converted into `EntityUid`s.
+* Remove the duplicate serialization copy of components kept on ComponentRegistryEntry; now it only stores the deserialized component. To get the raw MappingDataNode for EntityPrototypes use PrototypeManager. This is expected to significantly reduce memory usage.
+* SpawnNextToOrDrop methods have been changed to take `EntProtoId?, Entity<TransformComponent?>, Vector2 = default` instead of `string?, EntityUid, TransformComponent? null`. Because of this, some `Entity<T>`s will need to first be explicity converted into `EntityUid`s.
 
 ### New features
 
-- SpawnNextToOrDrop methods can now offset their spawns by passing in a Vector2. This offset is always relative to the target.
+* Add a BoundUserInterfaceMessageReceivedEvent that will be raised whenever a BoundUserInterfaceMessage is received regardless of validation.
+* SpawnNextToOrDrop methods can now offset their spawns by passing in a Vector2. This offset is always relative to the target.
 
 ### Bugfixes
 
-- SpawnNextToOrDrop no longer runs mapinit on entities in nullspace.
+* Windows will stay at relative position not absolute pixel position on window resize.
+* SpawnNextToOrDrop no longer runs mapinit on entities in nullspace.
 
 ### Other
 
@@ -51,7 +54,43 @@ END TEMPLATE-->
 
 ### Internal
 
-*None yet*
+* Reduce TryParseEnum string allocations.
+* Reduce TryRelativeTo string allocations.
+* Reduce OpenGL logging string allocations on debug for the client.
+* Optimise sprite sorting slightly.
+* Simplify and optimise Box2.Contains(Vector2)
+* Optimise ComponentRegistry deserialization slightly.
+* Optimise Box2Rotated.TransformBox slightly.
+
+
+## 277.1.0
+
+### New features
+
+* Added `IsHardCollidable` to `SharedPhysicsSystem`.
+* Added `GetFilledTileCount` to `SharedMapSystem`.
+* Changed the cursors on interactive controls.
+* Added new `StyleProperty` `track` to `ScrollBar` that takes a `StyleBox` and displays it as a backing track for the whole height of the `ScrollBar`.
+* Scroll Lock is now a bindable key.
+
+### Bugfixes
+
+* Fixed override properties in `WrapContainer` not actually overriding the Style Properties.
+* Fixed `BoxContainer`'s `SeparationOverride` not overriding the Style Properties.
+* Fixed `SeparationOverride` not invalidating measure.
+* Fixed swapped parameters in `MapManager`'s `FindGridsIntersecting` methods.
+
+### Other
+
+* Added Pure attributes to the `EntityLookup` bounds methods.
+* Improved performance of collision filter test.
+* Removed an outdated xmldoc comment regarding dependency injection.
+* Audio resources now use `AsSpan` when checking signatures.
+
+### Internal
+
+* Added several test helpers to avoid boilerplate in integration tests around client connection / disconnection.
+* Added `.lscache` files to `.gitignore`.
 
 
 ## 277.0.0
