@@ -36,6 +36,7 @@ END TEMPLATE-->
 ### Breaking changes
 
 * Remove the duplicate serialization copy of components kept on ComponentRegistryEntry; now it only stores the deserialized component. To get the raw MappingDataNode for EntityPrototypes use PrototypeManager. This is expected to significantly reduce memory usage.
+* Validate Box2i inputs to ensure no negative-sized boxes.
 
 ### New features
 
@@ -58,6 +59,7 @@ END TEMPLATE-->
 * Simplify and optimise Box2.Contains(Vector2)
 * Optimise ComponentRegistry deserialization slightly.
 * Optimise Box2Rotated.TransformBox slightly.
+* Optimise Box2i.
 
 
 ## 277.1.0
