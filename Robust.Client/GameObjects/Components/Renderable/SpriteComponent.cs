@@ -59,8 +59,9 @@ namespace Robust.Client.GameObjects
         [DataField("visible")]
         internal bool _visible = true;
 
-        // VV convenience variable to examine layer objects using layer keys
-        // ReSharper disable once UnusedMember.Local
+        /// <summary>
+        /// Describes the relationship between sprite layer names and data.
+        /// </summary>
         [ViewVariables]
         public IReadOnlyDictionary<object, Layer> MappedLayers => LayerMap.ToDictionary(x => x.Key, x => Layers[x.Value]);
 
