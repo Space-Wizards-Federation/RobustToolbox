@@ -193,7 +193,7 @@ namespace Robust.Shared.Prototypes
         /// </summary>
         [Pure]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool TryComp<T>(out T? component, IComponentFactory factory) where T : IComponent, new()
+        public bool TryComp<T>([NotNullWhen(true)] out T? component, IComponentFactory factory) where T : IComponent, new()
             => TryComp(factory.CompName<T>(), out component);
 
         /// <summary>
@@ -205,14 +205,14 @@ namespace Robust.Shared.Prototypes
         {
             if (!Components.TryGetValue(name.Name, out var componentUnCast))
             {
-                component = default;
+                component = null;
                 return false;
             }
 
             // TODO: should this throw? might break some crazy shitcode though
             if (componentUnCast.Component is not T cast)
             {
-                component = default;
+                component = null;
                 return false;
             }
 
