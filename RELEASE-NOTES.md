@@ -35,7 +35,31 @@ END TEMPLATE-->
 
 ### Breaking changes
 
+*None yet*
+
+### New features
+
+*None yet*
+
+### Bugfixes
+
+*None yet*
+
+### Other
+
+*None yet*
+
+### Internal
+
+*None yet*
+
+
+## 277.2.0
+
+### Breaking changes
+
 * Remove the duplicate serialization copy of components kept on ComponentRegistryEntry; now it only stores the deserialized component. To get the raw MappingDataNode for EntityPrototypes use PrototypeManager. This is expected to significantly reduce memory usage.
+* Obsolete LocalRotation in favor of the system method. The angle is now also normalized to 2PI and no longer grows indefinitely.
 
 ### New features
 
@@ -48,7 +72,7 @@ END TEMPLATE-->
 
 ### Other
 
-*None yet*
+* Changed default auth server URL.
 
 ### Internal
 
@@ -58,6 +82,7 @@ END TEMPLATE-->
 * Optimise sprite sorting slightly.
 * Simplify and optimise Box2.Contains(Vector2)
 * Optimise ComponentRegistry deserialization slightly.
+* Optimise Box2Rotated.TransformBox slightly.
 
 
 ## 277.1.0
