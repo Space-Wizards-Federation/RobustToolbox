@@ -59,14 +59,17 @@ END TEMPLATE-->
 ### Breaking changes
 
 * Remove the duplicate serialization copy of components kept on ComponentRegistryEntry; now it only stores the deserialized component. To get the raw MappingDataNode for EntityPrototypes use PrototypeManager. This is expected to significantly reduce memory usage.
+* SpawnNextToOrDrop methods have been changed to take `EntProtoId?, Entity<TransformComponent?>, Vector2 = default` instead of `string?, EntityUid, TransformComponent? null`. Because of this, some `Entity<T>`s will need to first be explicity converted into `EntityUid`s.
 
 ### New features
 
 * Add a BoundUserInterfaceMessageReceivedEvent that will be raised whenever a BoundUserInterfaceMessage is received regardless of validation.
+* SpawnNextToOrDrop methods can now offset their spawns by passing in a Vector2. This offset is always relative to the target.
 
 ### Bugfixes
 
 * Windows will stay at relative position not absolute pixel position on window resize.
+* SpawnNextToOrDrop no longer runs mapinit on entities in nullspace.
 
 ### Other
 
