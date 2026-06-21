@@ -205,14 +205,14 @@ namespace Robust.Shared.Prototypes
         {
             if (!Components.TryGetValue(name.Name, out var componentUnCast))
             {
-                component = null;
+                component = default;
                 return false;
             }
 
             // TODO: should this throw? might break some crazy shitcode though
             if (componentUnCast.Component is not T cast)
             {
-                component = null;
+                component = default;
                 return false;
             }
 
