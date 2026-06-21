@@ -98,6 +98,32 @@ namespace Robust.Shared.Maths.Tests
         }
 
         [Test]
+        public void Box2ValidatesConstruction()
+        {
+            Assert.Multiple(() =>
+            {
+                Assert.Throws<ArgumentException>(() => new UIBox2(3, 4, -1, -2));
+                Assert.Throws<ArgumentException>(() => new UIBox2(new Vector2(3, 4), new Vector2(-1, -2)));
+            });
+        }
+
+        [Test]
+        public void Box2ValidatesProperties()
+        {
+            var box = new UIBox2(-1, -2, 3, 4);
+
+            Assert.Multiple(() =>
+            {
+                Assert.Throws<ArgumentOutOfRangeException>(() => box.Left = 4);
+                Assert.Throws<ArgumentOutOfRangeException>(() => box.Top = 5);
+                Assert.Throws<ArgumentOutOfRangeException>(() => box.Right = -2);
+                Assert.Throws<ArgumentOutOfRangeException>(() => box.Bottom = -3);
+                Assert.Throws<ArgumentOutOfRangeException>(() => box.TopLeft = new Vector2(4, 0));
+                Assert.Throws<ArgumentOutOfRangeException>(() => box.BottomRight = new Vector2(0, -3));
+            });
+        }
+
+        [Test]
         public void Box2CornerVectorProperties([ValueSource(nameof(Sources))] (float, float, float, float) test)
         {
             var (left, top, right, bottom) = test;
