@@ -62,7 +62,7 @@ namespace Robust.Client.GameObjects
         // VV convenience variable to examine layer objects using layer keys
         // ReSharper disable once UnusedMember.Local
         [ViewVariables]
-        private Dictionary<object, Layer> MappedLayers => LayerMap.ToDictionary(x => x.Key, x => Layers[x.Value]);
+        public IReadOnlyDictionary<object, Layer> MappedLayers => LayerMap.ToDictionary(x => x.Key, x => Layers[x.Value]);
 
         [ViewVariables(VVAccess.ReadWrite)]
         public bool Visible
