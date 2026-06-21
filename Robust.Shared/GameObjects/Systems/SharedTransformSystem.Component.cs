@@ -32,7 +32,7 @@ public abstract partial class SharedTransformSystem
         Angle rotation)
     {
         var meta = MetaData(uid);
-        var localRotation = NormalizeRotation(xform.LocalRotation + rotation);
+        var localRotation = xform.LocalRotation + rotation;
         var coordinates = new EntityCoordinates(newGridUid, tilePos + newGrid.TileSizeHalfVector);
 
         Unanchor(uid, xform);
