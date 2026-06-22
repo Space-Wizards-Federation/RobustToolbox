@@ -39,7 +39,7 @@ END TEMPLATE-->
 
 ### New features
 
-*None yet*
+* Added doppler factor as a CVar.
 
 ### Bugfixes
 
