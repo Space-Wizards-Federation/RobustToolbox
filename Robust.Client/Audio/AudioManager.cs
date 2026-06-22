@@ -143,6 +143,7 @@ internal sealed partial class AudioManager : IAudioInternal
         IsEfxSupported = HasAlDeviceExtension("ALC_EXT_EFX");
 
         _cfg.OnValueChanged(CVars.AudioMasterVolume, SetMasterGain, true);
+        _cfg.OnValueChanged(CVars.AudioDopplerFactor, SetDopplerFactor, true);
 
         _reload.Register("/Audio", "*.ogg");
         _reload.Register("/Audio", "*.wav");

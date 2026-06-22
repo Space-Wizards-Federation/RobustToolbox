@@ -10,6 +10,16 @@ namespace Robust.Client.Audio;
 [NotContentImplementable]
 public interface IAudioManager
 {
+    /// <summary>
+    /// OpenAL master gain for audio.
+    /// </summary>
+    float MasterGain { get; }
+
+    /// <summary>
+    /// OpenAL Doppler factor for audio.
+    /// </summary>
+    float DopplerFactor { get; }
+
     IAudioSource? CreateAudioSource(AudioStream stream);
 
     AudioStream LoadAudioOggVorbis(Stream stream, string? name = null);

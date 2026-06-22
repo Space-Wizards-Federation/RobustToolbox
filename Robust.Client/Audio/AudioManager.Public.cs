@@ -2,7 +2,9 @@ using System;
 using System.IO;
 using System.Numerics;
 using System.Threading;
+using JetBrains.Annotations;
 using OpenTK.Audio.OpenAL;
+using Robust.Shared;
 using Robust.Client.Audio.Sources;
 using Robust.Client.Graphics;
 using Robust.Shared.Audio;
@@ -15,6 +17,12 @@ namespace Robust.Client.Audio;
 internal partial class AudioManager
 {
     private float _zOffset;
+
+    /// <inheritdoc />
+    public float MasterGain { get; private set; }
+
+    /// <inheritdoc />
+    public float DopplerFactor { get; private set; } = 1f;
 
     public void SetZOffset(float offset)
     {
@@ -229,13 +237,11 @@ internal partial class AudioManager
 
     public void SetMasterGain(float newGain)
     {
-        if (newGain < 0f)
-        {
-            OpenALSawmill.Error("Tried to set master gain below 0, clamping to 0");
-            AL.Listener(ALListenerf.Gain, 0f);
-            return;
-        }
+        if (!float.IsFinite(newGain))
+            newGain = 0f;
 
+        newGain = MathF.Max(newGain, 0f);
+        MasterGain = newGain;
 
         #region Platform hack for MacOS
         // HACK/BUG: Apple's OpenAL implementation has a bug where values of 0f for listener gain don't actually
@@ -249,6 +255,18 @@ internal partial class AudioManager
         #endregion Platform hack for MacOS
 
         AL.Listener(ALListenerf.Gain, newGain);
+    }
+
+    private void SetDopplerFactor(float value)
+    {
+        if (!float.IsFinite(value))
+            value = 0f;
+
+        value = MathF.Max(value, 0f);
+
+        DopplerFactor = value;
+        AL.DopplerFactor(value);
+        _checkAlError();
     }
 
     public void SetAttenuation(Attenuation attenuation)
