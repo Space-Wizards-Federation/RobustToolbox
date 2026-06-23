@@ -1301,6 +1301,12 @@ namespace Robust.Shared
             CVarDef.Create("audio.mastervolume", 0.50f, CVar.ARCHIVE | CVar.CLIENTONLY);
 
         /// <summary>
+        /// OpenAL doppler factor for positional audio.
+        /// </summary>
+        public static readonly CVarDef<float> AudioDopplerFactor =
+            CVarDef.Create("audio.doppler_factor", 1f, CVar.SERVER | CVar.REPLICATED);
+
+        /// <summary>
         /// Maximum raycast distance for audio occlusion.
         /// </summary>
         public static readonly CVarDef<float> AudioRaycastLength =
