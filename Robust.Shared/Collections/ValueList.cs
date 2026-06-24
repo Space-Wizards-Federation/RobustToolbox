@@ -690,7 +690,7 @@ public struct ValueList<T> : IEnumerable<T>
             return false;
         }
 
-        value = _items![Count];
+        value = _items![Count - 1];
         return true;
     }
 }
