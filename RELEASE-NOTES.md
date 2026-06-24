@@ -69,6 +69,7 @@ END TEMPLATE-->
 ### Bugfixes
 
 * Windows will stay at relative position not absolute pixel position on window resize.
+* Dispose `AudioStream` when the `AudioResource` is disposed.
 
 ### Other
 
