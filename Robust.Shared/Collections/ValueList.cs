@@ -23,6 +23,9 @@ namespace Robust.Shared.Collections;
 /// public APIs probably shouldn't expose it unless you know what you're doing.
 /// </para>
 /// <para>
+/// If you use this as an IList then make sure it's passed as a generic to avoid boxing.
+/// </para>
+/// <para>
 /// This implementation does not complain if you modify it during iteration. Be careful!
 /// </para>
 /// <para>
