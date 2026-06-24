@@ -39,15 +39,16 @@ END TEMPLATE-->
 
 ### New features
 
-*None yet*
+* Add a `OnlyRotation` property to MoveEvent where the EntityCoordinates remain the same.
+* ValueList now implements IList and not just IEnumerable.
 
 ### Bugfixes
 
-*None yet*
+* Fix ValueList TryPop not clearing element references.
 
 ### Other
 
-*None yet*
+* Optimise Direction and DirectionFlag methods.
 
 ### Internal
 
