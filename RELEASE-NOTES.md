@@ -39,15 +39,18 @@ END TEMPLATE-->
 
 ### New features
 
+* Add a `OnlyRotation` property to MoveEvent where the EntityCoordinates remain the same.
+* ValueList now implements IList and not just IEnumerable.
 * Add batched Box2 / Box2Rotated drawing methods to Clyde WorldHandle.
 
 ### Bugfixes
 
-*None yet*
+* Fix ValueList TryPop not clearing element references.
+* Fix ValueList Peek always throwing by referencing the wrong index.
 
 ### Other
 
-*None yet*
+* Optimise Direction and DirectionFlag methods.
 
 ### Internal
 
