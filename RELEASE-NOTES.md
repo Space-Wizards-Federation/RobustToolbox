@@ -35,7 +35,18 @@ END TEMPLATE-->
 
 ### Breaking changes
 
-*None yet*
+- XamlX has been upgraded, and has a new style class syntax.
+  The syntax for multiple style classes has changed from:
+  ```xaml
+  <Control.StyleClasses>
+    <system:String>Hello</system:String>
+    <system:String>World</system:String>
+  </Control.StyleClasses>
+  ```
+  to
+  ```xaml
+  <Control StyleClasses="Hello World" />
+  ```
 
 ### New features
 
