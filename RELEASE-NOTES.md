@@ -35,7 +35,7 @@ END TEMPLATE-->
 
 ### Breaking changes
 
-*None yet*
+* Add validation to `UiBox2` to ensure the size is >= 0.
 
 ### New features
 

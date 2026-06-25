@@ -276,15 +276,15 @@ namespace Robust.Client.Graphics
         ///     Gets the box considered the "contents" of this style box, when drawn at a specific size. Input and output
         ///     boxes are in virtual pixels, though virtual pixels can also be used if the ui scale is set to 1.
         /// </summary>
-        /// <exception cref="ArgumentException">
-        ///     <paramref name="baseBox"/> is too small and the resultant box would have negative dimensions.
-        /// </exception>
         public UIBox2 GetContentBox(UIBox2 baseBox, float uiScale)
         {
             var left = baseBox.Left + GetContentMargin(Margin.Left) * uiScale;
             var top = baseBox.Top + GetContentMargin(Margin.Top) * uiScale;
             var right = baseBox.Right - GetContentMargin(Margin.Right) * uiScale;
             var bottom = baseBox.Bottom - GetContentMargin(Margin.Bottom) * uiScale;
+
+            right = MathF.Max(left, right);
+            bottom = MathF.Max(top, bottom);
 
             return new UIBox2(left, top, right, bottom);
         }
