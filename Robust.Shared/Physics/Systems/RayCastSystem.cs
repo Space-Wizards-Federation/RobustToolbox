@@ -229,8 +229,8 @@ public sealed partial class RayCastSystem : EntitySystem
         DebugTools.Assert(translation.IsValid());
 
         // Need to get the entire shape AABB to know what broadphases to even query.
-        var startAabb = shape.ComputeAABB(originTransform, 0);
-        var endAabb = shape.ComputeAABB(new Transform(originTransform.Position + translation, originTransform.Quaternion2D.Angle), 0);
+        var startAabb = _physics.ComputeAABB(shape, originTransform, 0);
+        var endAabb = _physics.ComputeAABB(shape, new Transform(originTransform.Position + translation, originTransform.Quaternion2D.Angle), 0);
         var aabb = startAabb.Union(endAabb);
 
         var result = new RayResult();

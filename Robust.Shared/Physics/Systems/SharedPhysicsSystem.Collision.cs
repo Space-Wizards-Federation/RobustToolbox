@@ -1,4 +1,5 @@
 /*
+using Transform = Robust.Shared.Physics.Transform;
 * Farseer Physics Engine:
 * Copyright (c) 2012 Ian Qvist
 *
@@ -25,13 +26,14 @@ using System.Numerics;
 using Microsoft.Extensions.ObjectPool;
 using Robust.Shared.Maths;
 using Robust.Shared.Physics.Collision.Shapes;
+using Robust.Shared.Physics.Collision;
 
-namespace Robust.Shared.Physics.Collision;
+namespace Robust.Shared.Physics.Systems;
 
 /// <summary>
 ///     Handles several collision features: Generating contact manifolds, testing shape overlap,
 /// </summary>
-internal sealed partial class CollisionManager : IManifoldManager
+public abstract partial class SharedPhysicsSystem
 {
     /*
      * Farseer had this as a static class with a ThreadStatic DistanceInput
@@ -39,6 +41,31 @@ internal sealed partial class CollisionManager : IManifoldManager
 
     private ObjectPool<EdgeShape> _edgePool =
         new DefaultObjectPool<EdgeShape>(new DefaultPooledObjectPolicy<EdgeShape>());
+
+    /// <summary>
+    /// Test overlap between the two shapes.
+    /// </summary>
+    /// <param name="shapeA">The first shape.</param>
+    /// <param name="shapeB">The second shape.</param>
+    /// <param name="xfA">The transform for the first shape.</param>
+    /// <param name="xfB">The transform for the seconds shape.</param>
+    /// <returns></returns>
+    public bool TestOverlap<T, U>(T shapeA, int indexA, U shapeB, int indexB, in Transform xfA, in Transform xfB)
+        where T : IPhysShape
+        where U : IPhysShape
+    {
+        var input = new DistanceInput();
+
+        input.ProxyA.Set(shapeA, indexA);
+        input.ProxyB.Set(shapeB, indexB);
+        input.TransformA = xfA;
+        input.TransformB = xfB;
+        input.UseRadii = true;
+
+        DistanceManager.ComputeDistance(out var output, out _, input);
+
+        return output.Distance < 10.0f * float.Epsilon;
+    }
 
     /// <summary>
     ///     Used for debugging contact points.

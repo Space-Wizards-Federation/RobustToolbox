@@ -50,43 +50,6 @@ namespace Robust.Shared.Physics.Systems;
 
 public abstract partial class SharedPhysicsSystem
 {
-    // TODO: Jesus we should really have a test for this
-    /// <summary>
-    ///     Ordering is under <see cref="ShapeType"/>
-    ///     uses enum to work out which collision evaluation to use.
-    /// </summary>
-    private static Contact.ContactType[,] _registers =
-    {
-       {
-           // Circle register
-           Contact.ContactType.Circle,
-           Contact.ContactType.EdgeAndCircle,
-           Contact.ContactType.PolygonAndCircle,
-           Contact.ContactType.ChainAndCircle,
-       },
-       {
-           // Edge register
-           Contact.ContactType.EdgeAndCircle,
-           Contact.ContactType.NotSupported, // Edge
-           Contact.ContactType.EdgeAndPolygon,
-           Contact.ContactType.NotSupported, // Chain
-       },
-       {
-           // Polygon register
-           Contact.ContactType.PolygonAndCircle,
-           Contact.ContactType.EdgeAndPolygon,
-           Contact.ContactType.Polygon,
-           Contact.ContactType.ChainAndPolygon,
-       },
-       {
-           // Chain register
-           Contact.ContactType.ChainAndCircle,
-           Contact.ContactType.NotSupported, // Edge
-           Contact.ContactType.ChainAndPolygon,
-           Contact.ContactType.NotSupported, // Chain
-       }
-   };
-
     private int ContactCount => _activeContacts.Count;
 
     private const int ContactPoolInitialSize = 128;
@@ -99,17 +62,17 @@ public abstract partial class SharedPhysicsSystem
     private sealed class ContactPoolPolicy : IPooledObjectPolicy<Contact>
     {
         private readonly SharedDebugPhysicsSystem _debugPhysicsSystem;
-        private readonly IManifoldManager _manifoldManager;
+        private readonly SharedPhysicsSystem _physics;
 
-        public ContactPoolPolicy(SharedDebugPhysicsSystem debugPhysicsSystem, IManifoldManager manifoldManager)
+        public ContactPoolPolicy(SharedDebugPhysicsSystem debugPhysicsSystem, SharedPhysicsSystem physics)
         {
             _debugPhysicsSystem = debugPhysicsSystem;
-            _manifoldManager = manifoldManager;
+            _physics = physics;
         }
 
         public Contact Create()
         {
-            var contact = new Contact(_manifoldManager);
+            var contact = new Contact(_physics);
 #if DEBUG
             contact._debugPhysics = _debugPhysicsSystem;
 #endif
@@ -181,7 +144,7 @@ public abstract partial class SharedPhysicsSystem
     private void InitializeContacts()
     {
         _contactPool = new DefaultObjectPool<Contact>(
-            new ContactPoolPolicy(_debugPhysics, _manifoldManager),
+            new ContactPoolPolicy(_debugPhysics, this),
             4096);
 
         InitializePool();
@@ -223,11 +186,8 @@ public abstract partial class SharedPhysicsSystem
         Fixture fixtureA, int indexA,
         Fixture fixtureB, int indexB)
     {
-        var type1 = fixtureA.Shape.ShapeType;
-        var type2 = fixtureB.Shape.ShapeType;
-
-        DebugTools.Assert(ShapeType.Unknown < type1 && type1 < ShapeType.TypeCount);
-        DebugTools.Assert(ShapeType.Unknown < type2 && type2 < ShapeType.TypeCount);
+        var type1 = GetContactShapeOrder(fixtureA.Shape);
+        var type2 = GetContactShapeOrder(fixtureB.Shape);
 
         // Pull out a spare contact object
         var contact = _contactPool.Get();
@@ -235,7 +195,8 @@ public abstract partial class SharedPhysicsSystem
         contact.Flags = ContactFlags.PreInit;
 
         // Edge+Polygon is non-symmetrical due to the way Erin handles collision type registration.
-        if ((type1 >= type2 || (type1 == ShapeType.Edge && type2 == ShapeType.Polygon)) && !(type2 == ShapeType.Edge && type1 == ShapeType.Polygon))
+        if ((type1 >= type2 || (fixtureA.Shape is EdgeShape && fixtureB.Shape is PolygonShape)) &&
+            !(fixtureB.Shape is EdgeShape && fixtureA.Shape is PolygonShape))
         {
             SetContact(contact, true, entA, entB, fixtureAId, fixtureBId, fixtureA, indexA, fixtureB, indexB);
         }
@@ -244,9 +205,38 @@ public abstract partial class SharedPhysicsSystem
             SetContact(contact, true, entB, entA, fixtureBId, fixtureAId, fixtureB, indexB, fixtureA, indexA);
         }
 
-        contact.Type = _registers[(int)type1, (int)type2];
+        contact.Type = GetContactType(fixtureA.Shape, fixtureB.Shape);
 
         return contact;
+    }
+
+    private static int GetContactShapeOrder(IPhysShape shape)
+    {
+        return shape switch
+        {
+            PhysShapeCircle => 0,
+            EdgeShape => 1,
+            PolygonShape => 2,
+            ChainShape => 3,
+            _ => throw new InvalidOperationException($"Invalid shape specified {shape.GetType()}"),
+        };
+    }
+
+    private static Contact.ContactType GetContactType<TShape, TShape2>(TShape shapeA, TShape2 shapeB)
+        where TShape : IPhysShape
+        where TShape2 : IPhysShape
+    {
+        return (shapeA, shapeB) switch
+        {
+            (PhysShapeCircle, PhysShapeCircle) => Contact.ContactType.Circle,
+            (PhysShapeCircle, EdgeShape) or (EdgeShape, PhysShapeCircle) => Contact.ContactType.EdgeAndCircle,
+            (PhysShapeCircle, PolygonShape) or (PolygonShape, PhysShapeCircle) => Contact.ContactType.PolygonAndCircle,
+            (PhysShapeCircle, ChainShape) or (ChainShape, PhysShapeCircle) => Contact.ContactType.ChainAndCircle,
+            (EdgeShape, PolygonShape) or (PolygonShape, EdgeShape) => Contact.ContactType.EdgeAndPolygon,
+            (PolygonShape, PolygonShape) => Contact.ContactType.Polygon,
+            (PolygonShape, ChainShape) or (ChainShape, PolygonShape) => Contact.ContactType.ChainAndPolygon,
+            _ => Contact.ContactType.NotSupported,
+        };
     }
 
     /// <summary>
@@ -478,8 +468,8 @@ public abstract partial class SharedPhysicsSystem
             // Special-case grid contacts.
             if ((contact.Flags & ContactFlags.Grid) != 0x0)
             {
-                var gridABounds = fixtureA.Shape.ComputeAABB(GetPhysicsTransform(uidA, xformA), 0);
-                var gridBBounds = fixtureB.Shape.ComputeAABB(GetPhysicsTransform(uidB, xformB), 0);
+                var gridABounds = ComputeAABB(fixtureA.Shape, GetPhysicsTransform(uidA, xformA), 0);
+                var gridBBounds = ComputeAABB(fixtureB.Shape, GetPhysicsTransform(uidB, xformB), 0);
 
                 if (!gridABounds.Intersects(gridBBounds))
                 {

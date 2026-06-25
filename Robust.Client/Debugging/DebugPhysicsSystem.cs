@@ -135,7 +135,7 @@ namespace Robust.Client.Debugging
                 var state1 = new PointState[2];
                 var state2 = new PointState[2];
 
-                CollisionManager.GetPointStates(ref state1, ref state2, oldManifold, manifold);
+                SharedPhysicsSystem.GetPointStates(ref state1, ref state2, oldManifold, manifold);
 
                 Span<Vector2> points = stackalloc Vector2[2];
                 var transformA = _physics.GetPhysicsTransform(contact.EntityA);
@@ -317,9 +317,9 @@ namespace Robust.Client.Debugging
 
                     foreach (var fixture in _entityManager.GetComponent<FixturesComponent>(physBody).Fixtures.Values)
                     {
-                        for (var i = 0; i < fixture.Shape.ChildCount; i++)
+                        for (var i = 0; i < _physicsSystem.GetChildCount(fixture.Shape); i++)
                         {
-                            var shapeBB = fixture.Shape.ComputeAABB(xform, i);
+                            var shapeBB = _physicsSystem.ComputeAABB(fixture.Shape, xform, i);
                             aabb = aabb?.Union(shapeBB) ?? shapeBB;
                         }
                     }

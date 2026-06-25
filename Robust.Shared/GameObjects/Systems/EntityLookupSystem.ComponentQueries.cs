@@ -91,9 +91,9 @@ public sealed partial class EntityLookupSystem
                     continue;
 
                 anyFixture = true;
-                for (var i = 0; i < fixture.Shape.ChildCount; i++)
+                for (var i = 0; i < _physics.GetChildCount(fixture.Shape); i++)
                 {
-                    if (_manifoldManager.TestOverlap(shape, 0, fixture.Shape, i, shapeTransform, transform))
+                    if (_physics.TestOverlap(shape, 0, fixture.Shape, i, shapeTransform, transform))
                     {
                         return true;
                     }
@@ -146,7 +146,6 @@ public sealed partial class EntityLookupSystem
             localTransform,
             _fixtures,
             _physics,
-            _manifoldManager,
             query,
             _fixturesQuery,
             (flags & LookupFlags.Sensors) != 0,
@@ -186,7 +185,7 @@ public sealed partial class EntityLookupSystem
             if (!state.Approximate)
             {
                 var intersectingTransform = state.Physics.GetLocalPhysicsTransform(value.Entity);
-                if (!state.Manifolds.TestOverlap(state.Shape, 0, value.Fixture.Shape, value.ChildIndex, state.Transform, intersectingTransform))
+                if (!state.Physics.TestOverlap(state.Shape, 0, value.Fixture.Shape, value.ChildIndex, state.Transform, intersectingTransform))
                 {
                     return true;
                 }
@@ -218,9 +217,9 @@ public sealed partial class EntityLookupSystem
                         continue;
 
                     anyFixture = true;
-                    for (var i = 0; i < fixture.Shape.ChildCount; i++)
+                    for (var i = 0; i < state.Physics.GetChildCount(fixture.Shape); i++)
                     {
-                        if (state.Manifolds.TestOverlap(state.Shape, 0, fixture.Shape, i, state.Transform,
+                        if (state.Physics.TestOverlap(state.Shape, 0, fixture.Shape, i, state.Transform,
                                 intersectingTransform))
                         {
                             state.Intersecting.Add((value, comp));
@@ -285,7 +284,6 @@ public sealed partial class EntityLookupSystem
             shapeTransform,
             _fixtures,
             _physics,
-            _manifoldManager,
             query,
             _fixturesQuery,
             flags);
@@ -335,7 +333,7 @@ public sealed partial class EntityLookupSystem
             {
                 var intersectingTransform = state.Physics.GetPhysicsTransform(value.Entity);
 
-                if (!state.Manifolds.TestOverlap(state.Shape, 0, value.Fixture.Shape, value.ChildIndex,
+                if (!state.Physics.TestOverlap(state.Shape, 0, value.Fixture.Shape, value.ChildIndex,
                         state.Transform, intersectingTransform))
                 {
                     return true;
@@ -374,9 +372,9 @@ public sealed partial class EntityLookupSystem
                         continue;
 
                     anyFixture = true;
-                    for (var i = 0; i < fixture.Shape.ChildCount; i++)
+                    for (var i = 0; i < state.Physics.GetChildCount(fixture.Shape); i++)
                     {
-                        if (state.Manifolds.TestOverlap(state.Shape, 0, fixture.Shape, i, state.Transform,
+                        if (state.Physics.TestOverlap(state.Shape, 0, fixture.Shape, i, state.Transform,
                                 intersectingTransform))
                         {
                             state.Found = true;
@@ -437,7 +435,7 @@ public sealed partial class EntityLookupSystem
         if (mapId == MapId.Nullspace)
             return false;
 
-        var worldAABB = shape.ComputeAABB(shapeTransform, 0);
+        var worldAABB = _physics.ComputeAABB(shape, shapeTransform, 0);
 
         if (!UseBoundsQuery(type, worldAABB.Height * worldAABB.Width))
         {
@@ -529,7 +527,7 @@ public sealed partial class EntityLookupSystem
         if (mapId == MapId.Nullspace)
             return;
 
-        var worldAABB = shape.ComputeAABB(shapeTransform, 0);
+        var worldAABB = _physics.ComputeAABB(shape, shapeTransform, 0);
 
         if (!UseBoundsQuery(type, worldAABB.Height * worldAABB.Width))
         {
@@ -554,14 +552,14 @@ public sealed partial class EntityLookupSystem
                 static (EntityUid uid, MapGridComponent grid, ref GridQueryState<IComponent, T> state) =>
                 {
                     var localTransform = state.Physics.GetRelativePhysicsTransform(state.Transform, uid);
-                    var localAabb = state.Shape.ComputeAABB(localTransform, 0);
+                    var localAabb = state.Physics.ComputeAABB(state.Shape, localTransform, 0);
                     state.Lookup.AddEntitiesIntersecting(uid, state.Intersecting, state.Shape, localAabb, localTransform, state.Flags, state.Query);
                     return true;
                 }, approx: true, includeMap: false);
 
             var mapUid = _map.GetMapOrInvalid(mapId);
             var localTransform = state.Physics.GetRelativePhysicsTransform(state.Transform, mapUid);
-            var localAabb = state.Shape.ComputeAABB(localTransform, 0);
+            var localAabb = state.Physics.ComputeAABB(state.Shape, localTransform, 0);
 
             AddEntitiesIntersecting(mapUid, intersecting, shape, localAabb, localTransform, flags, query);
 
@@ -575,7 +573,7 @@ public sealed partial class EntityLookupSystem
     {
         if (mapId == MapId.Nullspace) return;
 
-        var worldAABB = shape.ComputeAABB(shapeTransform, 0);
+        var worldAABB = _physics.ComputeAABB(shape, shapeTransform, 0);
 
         if (!UseBoundsQuery<T>(worldAABB.Height * worldAABB.Width))
         {
@@ -600,7 +598,7 @@ public sealed partial class EntityLookupSystem
                 static (EntityUid uid, MapGridComponent grid, ref GridQueryState<T, TShape> state) =>
                 {
                     var localTransform = state.Physics.GetRelativePhysicsTransform(state.Transform, uid);
-                    var localAabb = state.Shape.ComputeAABB(localTransform, 0);
+                    var localAabb = state.Physics.ComputeAABB(state.Shape, localTransform, 0);
                     state.Lookup.AddEntitiesIntersecting(uid, state.Intersecting, state.Shape, localAabb, localTransform, state.Flags, state.Query);
                     return true;
                 }, approx: true, includeMap: false);
@@ -608,7 +606,7 @@ public sealed partial class EntityLookupSystem
             // Get map entities
             var mapUid = _map.GetMapOrInvalid(mapId);
             var localTransform = state.Physics.GetRelativePhysicsTransform(state.Transform, mapUid);
-            var localAabb = state.Shape.ComputeAABB(localTransform, 0);
+            var localAabb = state.Physics.ComputeAABB(state.Shape, localTransform, 0);
 
             AddEntitiesIntersecting(mapUid, entities, shape, localAabb, localTransform, flags, query);
             AddContained(entities, flags, query);
@@ -855,7 +853,6 @@ public sealed partial class EntityLookupSystem
         Transform Transform,
         FixtureSystem Fixtures,
         SharedPhysicsSystem Physics,
-        IManifoldManager Manifolds,
         EntityQuery<T> Query,
         EntityQuery<FixturesComponent> FixturesQuery,
         LookupFlags Flags
@@ -868,7 +865,6 @@ public sealed partial class EntityLookupSystem
         Transform Transform,
         FixtureSystem Fixtures,
         SharedPhysicsSystem Physics,
-        IManifoldManager Manifolds,
         EntityQuery<T> Query,
         EntityQuery<FixturesComponent> FixturesQuery,
         bool Sensors,

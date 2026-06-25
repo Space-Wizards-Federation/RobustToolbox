@@ -1,12 +1,14 @@
 using System;
+using Transform = Robust.Shared.Physics.Transform;
 using System.Numerics;
 using Robust.Shared.Maths;
 using Robust.Shared.Physics.Collision.Shapes;
+using Robust.Shared.Physics.Collision;
 using Robust.Shared.Utility;
 
-namespace Robust.Shared.Physics.Collision;
+namespace Robust.Shared.Physics.Systems;
 
-internal sealed partial class CollisionManager
+public abstract partial class SharedPhysicsSystem
 {
     /// <summary>
     /// Find the max separation between poly1 and poly2 using edge normals from poly1.
@@ -47,7 +49,7 @@ internal sealed partial class CollisionManager
         var v2s = poly2.Vertices;
         var count1 = poly1.VertexCount;
         var count2 = poly2.VertexCount;
-        var xf = Transform.MulT(xf2, xf1);
+        var xf = Physics.Transform.MulT(xf2, xf1);
 
         var bestIndex = 0;
         var maxSeparation = float.MinValue;
@@ -55,8 +57,8 @@ internal sealed partial class CollisionManager
         for (var i = 0; i < count1; i++)
         {
             // Get poly1 normal in frame2.
-            var n = Transform.Mul(xf.Quaternion2D, n1s[i]);
-            var v1 = Transform.Mul(xf, v1s[i]);
+            var n = Physics.Transform.Mul(xf.Quaternion2D, n1s[i]);
+            var v1 = Physics.Transform.Mul(xf, v1s[i]);
 
             // Find deepest point for normal i.
             var si = float.MaxValue;
@@ -91,7 +93,7 @@ internal sealed partial class CollisionManager
         DebugTools.Assert(0 <= edge1 && edge1 < poly1.VertexCount);
 
         // Get the normal of the reference edge in poly2's frame.
-        var normal1 = Transform.MulT(xf2.Quaternion2D, Transform.Mul(xf1.Quaternion2D, normals1[edge1]));
+        var normal1 = Physics.Transform.MulT(xf2.Quaternion2D, Physics.Transform.Mul(xf1.Quaternion2D, normals1[edge1]));
 
         // Find the incident edge on poly2.
         var index = 0;
@@ -114,14 +116,14 @@ internal sealed partial class CollisionManager
 
         ref var cv0 = ref c[0];
 
-        cv0.V = Transform.Mul(xf2, vertices2[i1]);
+        cv0.V = Physics.Transform.Mul(xf2, vertices2[i1]);
         cv0.ID.Features.IndexA = (byte) edge1;
         cv0.ID.Features.IndexB = (byte) i1;
         cv0.ID.Features.TypeA = (byte) ContactFeatureType.Face;
         cv0.ID.Features.TypeB = (byte) ContactFeatureType.Vertex;
 
         ref var cv1 = ref c[1];
-        cv1.V = Transform.Mul(xf2, vertices2[i2]);
+        cv1.V = Physics.Transform.Mul(xf2, vertices2[i2]);
         cv1.ID.Features.IndexA = (byte) edge1;
         cv1.ID.Features.IndexB = (byte) i2;
         cv1.ID.Features.TypeA = (byte) ContactFeatureType.Face;
@@ -200,13 +202,13 @@ internal sealed partial class CollisionManager
         Vector2 localNormal = new Vector2(localTangent.Y, -localTangent.X);
         Vector2 planePoint = (v11 + v12) * 0.5f;
 
-        Vector2 tangent = Transform.Mul(xf1.Quaternion2D, localTangent);
+        Vector2 tangent = Physics.Transform.Mul(xf1.Quaternion2D, localTangent);
 
         float normalX = tangent.Y;
         float normalY = -tangent.X;
 
-        v11 = Transform.Mul(xf1, v11);
-        v12 = Transform.Mul(xf1, v12);
+        v11 = Physics.Transform.Mul(xf1, v11);
+        v12 = Physics.Transform.Mul(xf1, v12);
 
         // Face offset.
         float frontOffset = normalX * v11.X + normalY * v11.Y;
@@ -248,7 +250,7 @@ internal sealed partial class CollisionManager
             if (separation <= totalRadius)
             {
                 ref var cp = ref points[pointCount];
-                cp.LocalPoint = Transform.MulT(xf2, clipPoints2[i].V);
+                cp.LocalPoint = Physics.Transform.MulT(xf2, clipPoints2[i].V);
                 cp.Id = clipPoints2[i].ID;
 
                 if (flip)

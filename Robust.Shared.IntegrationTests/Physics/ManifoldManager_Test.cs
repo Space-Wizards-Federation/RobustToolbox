@@ -1,19 +1,21 @@
 using System.Numerics;
 using NUnit.Framework;
-using Robust.Shared.IoC;
+using Robust.Shared.GameObjects;
 using Robust.Shared.Maths;
 using Robust.Shared.Physics;
 using Robust.Shared.Physics.Collision;
 using Robust.Shared.Physics.Collision.Shapes;
+using Robust.Shared.Physics.Systems;
 using Robust.Shared.Utility;
+using Robust.UnitTesting.Server;
 
 namespace Robust.UnitTesting.Shared.Physics
 {
     [TestFixture]
-    [TestOf(typeof(IManifoldManager))]
-    internal sealed class ManifoldManager_Test : OurRobustUnitTest
+    [TestOf(typeof(SharedPhysicsSystem))]
+    internal sealed class ManifoldManager_Test
     {
-        private IManifoldManager _manifoldManager = default!;
+        private SharedPhysicsSystem _physics = default!;
 
         private PhysShapeCircle _circleA = default!;
         private PhysShapeCircle _circleB = default!;
@@ -24,7 +26,10 @@ namespace Robust.UnitTesting.Shared.Physics
         [OneTimeSetUp]
         public void Setup()
         {
-            _manifoldManager = new CollisionManager();
+            var sim = RobustServerSimulation
+                .NewSimulation()
+                .InitializeInstance();
+            _physics = sim.Resolve<IEntityManager>().System<SharedPhysicsSystem>();
             _circleA = new PhysShapeCircle(0.5f);
             _circleB = new PhysShapeCircle(0.5f);
             _polyA = new PolygonShape();
@@ -40,15 +45,15 @@ namespace Robust.UnitTesting.Shared.Physics
             var transformB = new Transform(Vector2.One, 0f);
 
             // No overlap
-            Assert.That(_manifoldManager.TestOverlap(_circleA, 0, _circleB, 0, transformA, transformB), Is.EqualTo(false));
+            Assert.That(_physics.TestOverlap(_circleA, 0, _circleB, 0, transformA, transformB), Is.EqualTo(false));
 
             // Overlap directly
             transformA = new Transform(transformB.Position, 0f);
-            Assert.That(_manifoldManager.TestOverlap(_circleA, 0, _circleB, 0, transformA, transformB), Is.EqualTo(true));
+            Assert.That(_physics.TestOverlap(_circleA, 0, _circleB, 0, transformA, transformB), Is.EqualTo(true));
 
             // Overlap on edge
             transformA.Position = transformB.Position + new Vector2(0.5f, 0.0f);
-            Assert.That(_manifoldManager.TestOverlap(_circleA, 0, _circleB, 0, transformA, transformB), Is.EqualTo(true));
+            Assert.That(_physics.TestOverlap(_circleA, 0, _circleB, 0, transformA, transformB), Is.EqualTo(true));
         }
 
         [Test]
@@ -58,18 +63,18 @@ namespace Robust.UnitTesting.Shared.Physics
             var transformB = new Transform(Vector2.One, 0f);
 
             // No overlap
-            Assert.That(_manifoldManager.TestOverlap(_polyA, 0, _polyB, 0, transformA, transformB), Is.EqualTo(false));
+            Assert.That(_physics.TestOverlap(_polyA, 0, _polyB, 0, transformA, transformB), Is.EqualTo(false));
 
             // Overlap directly
             transformA = new Transform(transformB.Position, 0f);
-            Assert.That(_manifoldManager.TestOverlap(_polyA, 0, _polyB, 0, transformA, transformB), Is.EqualTo(true));
+            Assert.That(_physics.TestOverlap(_polyA, 0, _polyB, 0, transformA, transformB), Is.EqualTo(true));
 
             // Overlap on edge
             transformA.Position = transformB.Position + new Vector2(0.5f, 0.0f);
-            Assert.That(_manifoldManager.TestOverlap(_polyA, 0, _polyB, 0, transformA, transformB), Is.EqualTo(true));
+            Assert.That(_physics.TestOverlap(_polyA, 0, _polyB, 0, transformA, transformB), Is.EqualTo(true));
 
             transformA.Quaternion2D = transformA.Quaternion2D.Set(45f);
-            Assert.That(_manifoldManager.TestOverlap(_polyA, 0, _polyB, 0, transformA, transformB), Is.EqualTo(true));
+            Assert.That(_physics.TestOverlap(_polyA, 0, _polyB, 0, transformA, transformB), Is.EqualTo(true));
         }
 
         [Test]
@@ -98,7 +103,7 @@ namespace Robust.UnitTesting.Shared.Physics
                     }
                 )
             };
-            _manifoldManager.CollidePolygons(ref manifold, _polyA, transformA, _polyB, transformB);
+            _physics.CollidePolygons(ref manifold, _polyA, transformA, _polyB, transformB);
 
             for (var i = 0; i < manifold.PointCount; i++)
             {

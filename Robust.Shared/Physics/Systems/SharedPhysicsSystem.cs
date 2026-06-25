@@ -40,7 +40,6 @@ namespace Robust.Shared.Physics.Systems
             });
 
         [Dependency] private IConfigurationManager _cfg = default!;
-        [Dependency] private IManifoldManager _manifoldManager = default!;
         [Dependency] private IParallelManager _parallel = default!;
         [Dependency] private EntityLookupSystem _lookup = default!;
         [Dependency] private SharedBroadphaseSystem _broadphase = default!;
@@ -61,6 +60,7 @@ namespace Robust.Shared.Physics.Systems
         public bool MetricsEnabled { get; protected set; }
 
         private   EntityQuery<CollideOnAnchorComponent> _anchorQuery;
+        private   EntityQuery<BroadphaseComponent> BroadphaseQuery;
         private   EntityQuery<FixturesComponent> _fixturesQuery;
         private   EntityQuery<JointComponent> JointQuery;
         private   EntityQuery<JointRelayTargetComponent> RelayTargetQuery;
@@ -103,6 +103,7 @@ namespace Robust.Shared.Physics.Systems
             _angularVelocityIndex = 10;
 
             _anchorQuery = GetEntityQuery<CollideOnAnchorComponent>();
+            BroadphaseQuery = GetEntityQuery<BroadphaseComponent>();
             _fixturesQuery = GetEntityQuery<FixturesComponent>();
             JointQuery = GetEntityQuery<JointComponent>();
             RelayTargetQuery = GetEntityQuery<JointRelayTargetComponent>();

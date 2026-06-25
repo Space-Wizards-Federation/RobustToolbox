@@ -10,7 +10,6 @@ using Robust.Shared.Log;
 using Robust.Shared.Map;
 using Robust.Shared.Network;
 using Robust.Shared.Physics;
-using Robust.Shared.Physics.Collision;
 using Robust.Shared.Profiling;
 using Robust.Shared.Random;
 using Robust.Shared.Sandboxing;
@@ -42,7 +41,6 @@ namespace Robust.Shared
             deps.Register<IRobustRandom, RobustRandom>();
             deps.Register<IRobustMappedStringSerializer, RobustMappedStringSerializer>();
             deps.Register<ISandboxHelper, SandboxHelper>();
-            deps.Register<IManifoldManager, CollisionManager>();
             deps.Register<IVerticesSimplifier, RamerDouglasPeuckerSimplifier>();
             deps.Register<IParallelManager, ParallelManager>();
             deps.Register<IParallelManagerInternal, ParallelManager>();

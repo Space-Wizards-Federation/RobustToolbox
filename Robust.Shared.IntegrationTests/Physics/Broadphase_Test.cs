@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
@@ -144,11 +145,14 @@ internal sealed class Broadphase_Test
         Assert.That(fixture.ProxyCount, Is.EqualTo(1));
         Assert.That(broadphase.StaticSundriesTree, Does.Not.Contain(ent));
 
-        Assert.That(broadphase.StaticTree.GetProxy(fixture.Proxies[0].ProxyId)!.Equals(fixture.Proxies[0]));
+        var proxy = fixture.Proxies[0];
+        Assert.That(broadphase.StaticTree.GetProxy(proxy.ProxyId)!.Equals(proxy));
 
         // Now check we go to the map's tree correctly.
         xformSys.SetCoordinates(ent, new EntityCoordinates(mapEnt, Vector2.One));
-        Assert.That(entManager.GetComponent<BroadphaseComponent>(mapEnt).StaticTree.GetProxy(fixture.Proxies[0].ProxyId)!.Equals(fixture.Proxies[0]));
+
+        proxy = fixture.Proxies[0];
+        Assert.That(entManager.GetComponent<BroadphaseComponent>(mapEnt).StaticTree.GetProxy(proxy.ProxyId)!.Equals(proxy));
         Assert.That(xform.Broadphase!.Value.Uid.Equals(mapEnt));
     }
 

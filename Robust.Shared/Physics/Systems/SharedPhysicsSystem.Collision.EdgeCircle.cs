@@ -1,11 +1,13 @@
 using System.Numerics;
+using Transform = Robust.Shared.Physics.Transform;
 using Robust.Shared.Maths;
 using Robust.Shared.Physics.Collision.Shapes;
+using Robust.Shared.Physics.Collision;
 using Robust.Shared.Utility;
 
-namespace Robust.Shared.Physics.Collision;
+namespace Robust.Shared.Physics.Systems;
 
-internal sealed partial class CollisionManager
+public abstract partial class SharedPhysicsSystem
 {
     /// <summary>
         /// Compute contact points for edge versus circle.
@@ -22,7 +24,7 @@ internal sealed partial class CollisionManager
             manifold.PointCount = 0;
 
 	        // Compute circle in frame of edge
-	        var Q = Transform.MulT(transformA, Transform.Mul(transformB, circleB.Position));
+	        var Q = Physics.Transform.MulT(transformA, Physics.Transform.Mul(transformB, circleB.Position));
 
             var A = edgeA.Vertex1;
             var B = edgeA.Vertex2;

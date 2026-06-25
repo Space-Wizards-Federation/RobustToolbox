@@ -73,7 +73,7 @@ public sealed partial class EntityLookupSystem
     /// </summary>
     public void GetLocalEntitiesIntersecting(EntityUid gridUid, IPhysShape shape, Transform localTransform, HashSet<EntityUid> intersecting, LookupFlags flags = DefaultFlags, BroadphaseComponent? lookup = null)
     {
-        var localAABB = shape.ComputeAABB(localTransform, 0);
+        var localAABB = _physics.ComputeAABB(shape, localTransform, 0);
         AddEntitiesIntersecting(gridUid, intersecting, shape, localAABB, localTransform, flags: flags, lookup: lookup);
         AddContained(intersecting, flags);
     }

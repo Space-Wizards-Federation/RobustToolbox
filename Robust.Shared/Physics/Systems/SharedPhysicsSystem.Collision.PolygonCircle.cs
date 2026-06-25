@@ -1,12 +1,14 @@
 using System;
+using Transform = Robust.Shared.Physics.Transform;
 using System.Numerics;
 using Robust.Shared.Maths;
 using Robust.Shared.Physics.Collision.Shapes;
+using Robust.Shared.Physics.Collision;
 using Robust.Shared.Utility;
 
-namespace Robust.Shared.Physics.Collision;
+namespace Robust.Shared.Physics.Systems;
 
-internal sealed partial class CollisionManager
+public abstract partial class SharedPhysicsSystem
 {
     /// <summary>
     /// Compute the collision manifold between a polygon and a circle.
@@ -22,8 +24,8 @@ internal sealed partial class CollisionManager
         manifold.PointCount = 0;
 
 	    // Compute circle position in the frame of the polygon.
-	    var c = Transform.Mul(xfB, circleB.Position);
-	    var cLocal = Transform.MulT(xfA, c);
+	    var c = Physics.Transform.Mul(xfB, circleB.Position);
+	    var cLocal = Physics.Transform.MulT(xfA, c);
 
 	    // Find the min separating edge.
 	    int normalIndex = 0;

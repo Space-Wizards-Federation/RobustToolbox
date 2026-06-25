@@ -25,8 +25,12 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Robust.Shared.Configuration;
+using Robust.Shared.GameObjects;
 using Robust.Shared.IoC;
 using Robust.Shared.Maths;
+using Robust.Shared.Physics.Components;
+using Robust.Shared.Physics.Dynamics;
+using Robust.Shared.Physics.Serialization;
 using Robust.Shared.Physics.Shapes;
 using Robust.Shared.Physics.Systems;
 using Robust.Shared.Serialization;
@@ -45,7 +49,7 @@ namespace Robust.Shared.Physics.Collision.Shapes
         [ViewVariables]
         public int VertexCount => Vertices.Length;
 
-        [DataField("vertices"),
+        [DataField,
          Access(typeof(SharedPhysicsSystem), Friend = AccessPermissions.ReadWriteExecute,
              Other = AccessPermissions.Read)]
         public Vector2[] Vertices = Array.Empty<Vector2>();
@@ -58,13 +62,24 @@ namespace Robust.Shared.Physics.Collision.Shapes
         [ViewVariables, Access(typeof(SharedPhysicsSystem), Friend = AccessPermissions.ReadWriteExecute, Other = AccessPermissions.Read)]
         public Vector2 Centroid { get; internal set; } = Vector2.Zero;
 
-        public int ChildCount => 1;
-
         /// <summary>
         /// The radius of this polygon.
         /// </summary>
-        [DataField, Access(typeof(SharedPhysicsSystem), Friend = AccessPermissions.ReadWriteExecute, Other = AccessPermissions.Read)]
-        public float Radius { get; set; } = PhysicsConstants.PolygonRadius;
+        private float _radius = PhysicsConstants.PolygonRadius;
+
+        [DataField(customTypeSerializer: typeof(NonNegativeFloatSerializer)),
+         Access(typeof(SharedPhysicsSystem), Friend = AccessPermissions.ReadWriteExecute, Other = AccessPermissions.Read)]
+        public float Radius
+        {
+            get => _radius;
+            set
+            {
+                if (value < 0f)
+                    throw new ArgumentOutOfRangeException(nameof(value), value, "Polygon radius cannot be negative.");
+
+                _radius = value;
+            }
+        }
 
         public bool Set(List<Vector2> vertices)
         {
@@ -166,8 +181,6 @@ namespace Robust.Shared.Physics.Collision.Shapes
             c = c * (1.0f / area) + s;
             return c;
         }
-
-        public ShapeType ShapeType => ShapeType.Polygon;
 
         public PolygonShape()
         {
@@ -311,23 +324,6 @@ namespace Robust.Shared.Physics.Collision.Shapes
             }
 
             return true;
-        }
-
-        public Box2 ComputeAABB(Transform transform, int childIndex)
-        {
-            DebugTools.Assert(childIndex == 0);
-            var lower = Transform.Mul(transform, Vertices[0]);
-            var upper = lower;
-
-            for (var i = 1; i < VertexCount; ++i)
-            {
-                var v = Transform.Mul(transform, Vertices[i]);
-                lower = Vector2.Min(lower, v);
-                upper = Vector2.Max(upper, v);
-            }
-
-            var r = new Vector2(Radius, Radius);
-            return new Box2(lower - r, upper + r);
         }
 
         public static explicit operator PolygonShape(PhysShapeAabb aabb)

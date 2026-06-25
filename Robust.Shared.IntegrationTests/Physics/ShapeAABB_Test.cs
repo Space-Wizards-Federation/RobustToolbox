@@ -5,12 +5,16 @@ using NUnit.Framework;
 using Robust.Shared.Maths;
 using Robust.Shared.Physics;
 using Robust.Shared.Physics.Collision.Shapes;
+using Robust.Shared.Physics.Systems;
 
 namespace Robust.UnitTesting.Shared.Physics
 {
     [TestFixture]
     internal sealed class ShapeAABB_Test : OurRobustUnitTest
     {
+        private sealed class TestPhysicsSystem : SharedPhysicsSystem;
+
+        private readonly TestPhysicsSystem _physics = new();
         private Transform _transform;
         private Transform _rotatedTransform;
 
@@ -26,7 +30,7 @@ namespace Robust.UnitTesting.Shared.Physics
         public void TestCircleAABB()
         {
             var circle = new PhysShapeCircle(0.5f);
-            var aabb = circle.ComputeAABB(_transform, 0);
+            var aabb = _physics.ComputeAABB(circle, _transform, 0);
             Assert.That(aabb.Width, Is.EqualTo(1f));
             Assert.That(aabb, Is.EqualTo(new Box2(0.5f, 0.5f, 1.5f, 1.5f)));
         }
@@ -35,7 +39,7 @@ namespace Robust.UnitTesting.Shared.Physics
         public void TestRotatedCircleAABB()
         {
             var circle = new PhysShapeCircle(0.5f);
-            var aabb = circle.ComputeAABB(_rotatedTransform, 0);
+            var aabb = _physics.ComputeAABB(circle, _rotatedTransform, 0);
             Assert.That(aabb.Width, Is.EqualTo(1f));
             Assert.That(aabb, Is.EqualTo(new Box2(0.5f, 0.5f, 1.5f, 1.5f)));
         }
@@ -44,7 +48,7 @@ namespace Robust.UnitTesting.Shared.Physics
         public void TestEdgeAABB()
         {
             var edge = new EdgeShape(Vector2.Zero, Vector2.One);
-            var aabb = edge.ComputeAABB(_transform, 0);
+            var aabb = _physics.ComputeAABB(edge, _transform, 0);
             Assert.That(aabb.Width, Is.EqualTo(1.02f));
             Assert.That(aabb, Is.EqualTo(new Box2(0.99f, 0.99f, 2.01f, 2.01f)));
         }
@@ -53,7 +57,7 @@ namespace Robust.UnitTesting.Shared.Physics
         public void TestRotatedEdgeAABB()
         {
             var edge = new EdgeShape(Vector2.Zero, Vector2.One);
-            var aabb = edge.ComputeAABB(_rotatedTransform, 0);
+            var aabb = _physics.ComputeAABB(edge, _rotatedTransform, 0);
             Assert.That(MathHelper.CloseToPercent(aabb.Width, 0.02f));
             Assert.That(aabb.EqualsApprox(new Box2(0.99f, 0.99f, 1.01f, 2.42f), 0.01f));
         }
@@ -64,7 +68,7 @@ namespace Robust.UnitTesting.Shared.Physics
             var polygon = new PolygonShape();
             // Radius is added to the AABB hence we'll just deduct it here for simplicity
             polygon.SetAsBox(0.49f, 0.49f);
-            var aabb = polygon.ComputeAABB(_transform, 0);
+            var aabb = _physics.ComputeAABB(polygon, _transform, 0);
             Assert.That(aabb.Width, Is.EqualTo(1f));
             Assert.That(aabb, Is.EqualTo(new Box2(0.5f, 0.5f, 1.5f, 1.5f)));
         }
@@ -75,7 +79,7 @@ namespace Robust.UnitTesting.Shared.Physics
             var polygon = new PolygonShape();
             // Radius is added to the AABB hence we'll just deduct it here for simplicity
             polygon.SetAsBox(0.49f, 0.49f);
-            var aabb = polygon.ComputeAABB(_rotatedTransform, 0);
+            var aabb = _physics.ComputeAABB(polygon, _rotatedTransform, 0);
             // I already had a rough idea of what the AABB should be, I just put these in so the test passes.
             Assert.That(aabb.Width, Is.EqualTo(1.40592933f));
             Assert.That(aabb, Is.EqualTo(new Box2(0.29703534f, 0.29703534f, 1.7029647f, 1.7029647f)));

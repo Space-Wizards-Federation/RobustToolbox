@@ -35,6 +35,12 @@ namespace Robust.UnitTesting.Shared.Physics
         }
 
         [Test]
+        public void TestCircleNegativeRadiusThrows()
+        {
+            Assert.Throws<ArgumentOutOfRangeException>(() => new PhysShapeCircle(-0.5f));
+        }
+
+        [Test]
         public void TestEdgePoint()
         {
             // Edges never collide with a point because they're a damn line

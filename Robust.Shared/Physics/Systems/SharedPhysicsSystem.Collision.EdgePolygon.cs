@@ -1,12 +1,14 @@
 using System;
+using Transform = Robust.Shared.Physics.Transform;
 using System.Numerics;
 using Robust.Shared.Maths;
 using Robust.Shared.Physics.Collision.Shapes;
+using Robust.Shared.Physics.Collision;
 using Robust.Shared.Utility;
 
-namespace Robust.Shared.Physics.Collision;
+namespace Robust.Shared.Physics.Systems;
 
-internal sealed partial class CollisionManager
+public abstract partial class SharedPhysicsSystem
 {
     /// <summary>
     ///     Collides and edge and a polygon, taking into account edge adjacency.
@@ -21,9 +23,9 @@ internal sealed partial class CollisionManager
     {
         manifold.PointCount = 0;
 
-	    var xf = Transform.MulT(xfA, xfB);
+	    var xf = Physics.Transform.MulT(xfA, xfB);
 
-	    var centroidB = Transform.Mul(xf, polygonB.Centroid);
+	    var centroidB = Physics.Transform.Mul(xf, polygonB.Centroid);
 
 	    var v1 = edgeA.Vertex1;
 	    var v2 = edgeA.Vertex2;
@@ -47,8 +49,8 @@ internal sealed partial class CollisionManager
 
         for (var i = 0; i < tempPolyCount; ++i)
 	    {
-		    tempPolyVerts[i] = Transform.Mul(xf, polygonB.Vertices[i]);
-		    tempPolyNorms[i] = Transform.Mul(xf.Quaternion2D, polygonB.Normals[i]);
+		    tempPolyVerts[i] = Physics.Transform.Mul(xf, polygonB.Vertices[i]);
+		    tempPolyNorms[i] = Physics.Transform.Mul(xf.Quaternion2D, polygonB.Normals[i]);
 	    }
 
         DebugTools.Assert(tempPolyVerts.Length == tempPolyCount);
@@ -250,7 +252,7 @@ internal sealed partial class CollisionManager
 
 			    if (primaryAxis.Type == EPAxisType.EdgeA)
 			    {
-				    cp.LocalPoint = Transform.MulT(xf, clipPoints2[i].V);
+				    cp.LocalPoint = Physics.Transform.MulT(xf, clipPoints2[i].V);
 				    cp.Id = clipPoints2[i].ID;
 			    }
 			    else

@@ -164,7 +164,7 @@ public sealed partial class PhysicsSystem
                 continue;
             }
 
-            if (indexA >= fixtureA.Proxies.Length || indexB >= fixtureB.Proxies.Length)
+            if (indexA >= fixtureA.ProxyCount || indexB >= fixtureB.ProxyCount)
                 continue;
 
             var broadphaseA = xformA.Broadphase?.Uid;

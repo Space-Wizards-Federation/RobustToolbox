@@ -35,12 +35,14 @@ END TEMPLATE-->
 
 ### Breaking changes
 
-*None yet*
+* ChildCount and ComputeAABB for IPhysShape were moved to SharedPhysicsSystem.
+* Radius is now validated for physics shapes and negative values are no longer allowed.
 
 ### New features
 
 * Add a `OnlyRotation` property to MoveEvent where the EntityCoordinates remain the same.
 * ValueList now implements IList and not just IEnumerable.
+* SharedPhysicsSystem now exposes TestOverlap and the collision manifold methods.
 
 ### Bugfixes
 

@@ -1,6 +1,10 @@
 using System;
 using System.Numerics;
+using Robust.Shared.GameObjects;
 using Robust.Shared.Maths;
+using Robust.Shared.Physics.Components;
+using Robust.Shared.Physics.Dynamics;
+using Robust.Shared.Physics.Serialization;
 using Robust.Shared.Physics.Systems;
 using Robust.Shared.Serialization;
 using Robust.Shared.Serialization.Manager.Attributes;
@@ -17,17 +21,28 @@ namespace Robust.Shared.Physics.Collision.Shapes
     [DataDefinition]
     public sealed partial class PhysShapeCircle : IPhysShape, IEquatable<PhysShapeCircle>
     {
-        public int ChildCount => 1;
-
-        public ShapeType ShapeType => ShapeType.Circle;
-
         private const float DefaultRadius = 0.5f;
 
-        [DataField("radius"), Access(typeof(SharedPhysicsSystem), Friend = AccessPermissions.ReadWriteExecute, Other = AccessPermissions.Read)]
-        public float Radius { get; set; } = DefaultRadius;
+        private float _radius = DefaultRadius;
 
-        [DataField("position"), Access(typeof(SharedPhysicsSystem), Friend = AccessPermissions.ReadWriteExecute, Other = AccessPermissions.Read)]
+        [DataField(customTypeSerializer: typeof(NonNegativeFloatSerializer)),
+         Access(typeof(SharedPhysicsSystem), Friend = AccessPermissions.ReadWriteExecute, Other = AccessPermissions.Read)]
+        public float Radius
+        {
+            get => _radius;
+            set
+            {
+                if (value < 0f)
+                    throw new ArgumentOutOfRangeException(nameof(value), value, "Circle radius cannot be negative.");
+
+                _radius = value;
+            }
+        }
+
+        [DataField, Access(typeof(SharedPhysicsSystem), Friend = AccessPermissions.ReadWriteExecute, Other = AccessPermissions.Read)]
         public Vector2 Position;
+
+        public float Area => MathF.PI * _radius * _radius;
 
         public PhysShapeCircle()
         {
@@ -45,27 +60,14 @@ namespace Robust.Shared.Physics.Collision.Shapes
             Position = position;
         }
 
-        public float CalculateArea()
-        {
-            return MathF.PI * Radius * Radius;
-        }
-
-        public Box2 ComputeAABB(Transform transform, int childIndex)
-        {
-            DebugTools.Assert(childIndex == 0);
-
-            var p = transform.Position + Transform.Mul(transform.Quaternion2D, Position);
-            return new Box2(p.X - Radius, p.Y - Radius, p.X + Radius, p.Y + Radius);
-        }
-
         public Box2 CalcLocalBounds()
         {
             // circle inscribed in box
             return new Box2(
-                Position.X - Radius,
-                Position.Y - Radius,
-                Position.X + Radius,
-                Position.Y + Radius);
+                Position.X - _radius,
+                Position.Y - _radius,
+                Position.X + _radius,
+                Position.Y + _radius);
         }
 
         public bool Equals(IPhysShape? other)
@@ -81,7 +83,7 @@ namespace Robust.Shared.Physics.Collision.Shapes
             if (ReferenceEquals(this, other))
                 return true;
 
-            return MathHelper.CloseTo(Radius, other.Radius) && Position.EqualsApprox(other.Position);
+            return MathHelper.CloseTo(_radius, other._radius) && Position.EqualsApprox(other.Position);
         }
 
         public override bool Equals(object? obj)
@@ -91,7 +93,7 @@ namespace Robust.Shared.Physics.Collision.Shapes
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Radius, Position);
+            return HashCode.Combine(_radius, Position);
         }
     }
 }

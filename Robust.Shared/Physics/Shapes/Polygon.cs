@@ -31,10 +31,7 @@ internal record struct Polygon : IPhysShape
 
     public Vector2 Centroid;
 
-    public int ChildCount => 1;
     public float Radius { get; set; } = PhysicsConstants.PolygonRadius;
-    public ShapeType ShapeType => ShapeType.Polygon;
-
     // Hopefully this one is short-lived for a few months
     public Polygon(IPhysShape shape) : this((PolygonShape) shape)
     {
@@ -208,25 +205,6 @@ internal record struct Polygon : IPhysShape
         DebugTools.Assert(area > float.Epsilon);
         c = c * (1.0f / area) + s;
         return c;
-    }
-
-    public Box2 ComputeAABB(Transform transform, int childIndex)
-    {
-        DebugTools.Assert(VertexCount > 0);
-        DebugTools.Assert(childIndex == 0);
-        var verts = _vertices.AsSpan;
-        var lower = Transform.Mul(transform, verts[0]);
-        var upper = lower;
-
-        for (var i = 1; i < VertexCount; ++i)
-        {
-            var v = Transform.Mul(transform, verts[i]);
-            lower = Vector2.Min(lower, v);
-            upper = Vector2.Max(upper, v);
-        }
-
-        var r = new Vector2(Radius, Radius);
-        return new Box2(lower - r, upper + r);
     }
 
     public bool Equals(IPhysShape? other)
