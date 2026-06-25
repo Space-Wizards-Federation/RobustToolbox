@@ -692,7 +692,7 @@ namespace Robust.Client.Graphics.Clyde
                     if (applyModulation)
                         color *= modulate;
 
-                    // Can probably SIMD this more somehow but future concern.
+                    // TODO: Can probably SIMD this more somehow but future concern.
                     var quad = rect.Quad;
                     var transform = quad.Transform * _currentMatrixModel;
 
