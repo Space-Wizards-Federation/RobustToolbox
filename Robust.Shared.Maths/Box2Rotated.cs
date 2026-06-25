@@ -94,8 +94,12 @@ namespace Robust.Shared.Maths
         /// <summary>
         /// Calculates the smallest AABB that will encompass the rotated box. The AABB is in local space.
         /// </summary>
+        [Pure]
         public readonly Box2 CalcBoundingBox()
         {
+            if (Rotation == Angle.Zero)
+                return Box;
+
             GetVertices(out var x, out var y);
             var aabb = SimdHelpers.GetAABB(x, y);
             return Unsafe.As<Vector128<float>, Box2>(ref aabb);
